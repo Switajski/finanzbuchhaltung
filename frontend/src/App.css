@@ -15,14 +15,8 @@ html {background-color: rgb(7,1,126);}
   justify-content: center;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: rgb(253,255,0);
-}
+h1, h2, h3, h4, h5, h6 {color: rgb(253,255,0);}
 
-thead {
-  text-align: left;
-}
-
-th {
-  border-bottom: 1px solid;
-}
+thead {text-align: left;}
+th {border-bottom: 1px solid;}
+hr {margin:0;}
