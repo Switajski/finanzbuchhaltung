@@ -1,4 +1,4 @@
-(ns de.switajski.finanzbuchhaltung.handler
+(ns de.switajski.fibu.handler
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
