@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import styled, { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import clipperTheme from './clipperTheme'
-import { Input } from './UIComponents'
+import { Input, Hr } from './UIComponents'
+import AccountNumberInput from './AccountNumberInput'
 import { Grid, Cell } from 'styled-css-grid'
 import './App.css';
 
 const Screen = styled.div`
 height:600px;
+display: block;
 max-width:800px;
 margin-left:auto;
 margin-right:auto;
@@ -40,16 +42,44 @@ const attsToBeShown = [
 
 function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
+  const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
+  const [count, setCount] = useState(0)
+
+  const [debitAccount, setDebitAccount] = useState("")
+  const onDebitAccountChange = e => {
+    const v = e.target.value
+    !isNaN(v) && setDebitAccount(v)
+  }
+
+  const [creditAccount, setCreditAccount] = useState("")
+  const onCreditAccountChange = e => {
+    const v = e.target.value
+    !isNaN(v) && setCreditAccount(v)
+  }
 
   useEffect(() => {
-    fetch("/api")
+    fetch("/accounting-records")
       .then(r => r.json())
       .then(r => {
         setAccountingRecords(r
           .slice(1)
-          .filter(r => r.datensatz == "A")
+          .filter(r => r.datensatz === "A")
           .sort((a, b) => b.rech_nr - a.rech_nr))
+      })
+      .catch(exc => setExceptions([...exceptions, exc]))
+    fetch("/account-plan")
+      .then(r => r.json())
+      .then(r => {
+        setAccountPlan(
+          r.slice(1)
+            .map(r => {
+              return {
+                name: r.name_kont,
+                value: r.konto_nr
+              }
+            })
+        )
       })
       .catch(exc => setExceptions([...exceptions, exc]))
   }, [])
@@ -57,6 +87,7 @@ function App() {
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
+        <button onClick={() => setCount(count => count + 1)}>{count}</button>
         <Header />
         <Content>
           {(exceptions.length > 0) && <div>
@@ -64,12 +95,12 @@ function App() {
           </div>}
           <Padding>
             <Grid columns={3}>
-              <Cell>FIBU 3.0</Cell>
+              <Cell>FIBU 2.1</Cell>
               <Cell>laufende Buchung</Cell>
               <Cell>Pfau</Cell>
             </Grid>
           </Padding>
-          <hr />
+          <Hr />
           <Padding>
             <Grid columns={3}>
               <Cell><label>Position Nr.<Input size={6} /></label></Cell>
@@ -77,15 +108,25 @@ function App() {
               <Cell><label>Buchungsdatum<Input size={8} /></label><br /></Cell>
             </Grid>
             <br />
-            <label>Konto Soll&nbsp;&nbsp;<Input size={7} /></label><br />
-            <label>Konto Haben&nbsp;<Input size={7} /></label><br />
+            <AccountNumberInput
+              value={debitAccount}
+              name="Konto Soll&nbsp;&nbsp;"
+              options={accountPlan}
+              onChange={onDebitAccountChange} />
+            <br />
+            <AccountNumberInput
+              value={creditAccount}
+              name="Konto Haben&nbsp;"
+              options={accountPlan}
+              onChange={onCreditAccountChange} />
+            <br />
             <br />
             <label>Summe<Input size={8} /></label>
             &nbsp;&nbsp;<label>Steuerschl.<Input size={6} /></label><br />
-            <label>Text&nbsp;<Input size={50} /></label>
+            <label>Text&nbsp;<Input size={30} /></label>
           </Padding>
 
-          <hr />
+          <Hr />
           <Scrollable>
             <Table>
               <thead>

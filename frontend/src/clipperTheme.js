@@ -5,6 +5,7 @@ const brightGrey = "rgb(179,179,179);"
 
 const clipperTheme = {
     background: blue,
+    font: brightGrey,
 
     variable: blue,
     variableBg: cyan,
