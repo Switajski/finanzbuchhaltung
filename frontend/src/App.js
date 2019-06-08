@@ -44,7 +44,6 @@ function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
-  const [count, setCount] = useState(0)
 
   const [debitAccount, setDebitAccount] = useState("")
   const onDebitAccountChange = e => {
@@ -87,7 +86,6 @@ function App() {
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
-        <button onClick={() => setCount(count => count + 1)}>{count}</button>
         <Header />
         <Content>
           {(exceptions.length > 0) && <div>

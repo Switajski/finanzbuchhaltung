@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { Input } from './UIComponents'
+import useKeys from './useKeys'
 
 const Dropdown = styled.div`
 ${props => !props.showDropdown && 'display:none;'}
@@ -23,24 +24,24 @@ function AccountNumberInput(props) {
     const [showDropdown, setDropdown] = useState(false)
     const [selected, setSelected] = useState(0)
 
-    console.log(selected)
-
-    const upHandler = ({ key }) => {
-        if (key === "ArrowDown") {
-            setSelected(selected => selected + 1)
-        } else if (key === "ArrowUp") {
-            setSelected(selected => selected - 1)
+    const upHandler = (e) => {
+        if (e) {
+            if (e.key === "ArrowDown") {
+                setSelected(selected => selected + 1)
+            } else if (e.key === "ArrowUp") {
+                setSelected(selected => selected - 1)
+            }
         }
     }
+    useKeys(upHandler)
 
     const onFocus = () => {
         setDropdown(true)
-        window.addEventListener('keyup', upHandler);
     }
     const onBlur = () => {
         setDropdown(false)
-        window.removeEventListener('keyup', upHandler)
     }
+
     return <><label>{props.name}
         <Dropdown showDropdown={showDropdown} >
             <Ul>{props.options
