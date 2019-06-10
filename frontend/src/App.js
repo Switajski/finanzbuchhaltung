@@ -31,8 +31,9 @@ height:100%`
 const Padding = styled.div`
 padding: 5px 20px 5px 20px;`
 
+const indexSelector = r => r.rech_nr
 const attsToBeShown = [
-  { name: "Pos.", selector: r => r.rech_nr },
+  { name: "Pos.", selector: indexSelector },
   { name: "Datum", selector: r => r.dat },
   { name: "Soll", selector: r => r.konto },
   { name: "Haben", selector: r => r.gegen },
@@ -44,6 +45,9 @@ function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
+
+  const [editedRec, setEditedRec] = useState({
+  })
 
   const [debitAccount, setDebitAccount] = useState("")
   const onDebitAccountChange = e => {
@@ -110,11 +114,13 @@ function App() {
               value={debitAccount}
               name="Konto Soll&nbsp;&nbsp;"
               options={accountPlan}
+              onValueSet={o => setDebitAccount(o.value)}
               onChange={onDebitAccountChange} />
             <br />
             <AccountNumberInput
               value={creditAccount}
               name="Konto Haben&nbsp;"
+              onValueSet={o => setCreditAccount(o.value)}
               options={accountPlan}
               onChange={onCreditAccountChange} />
             <br />
@@ -128,13 +134,11 @@ function App() {
           <Scrollable>
             <Table>
               <thead>
-                {attsToBeShown.map(att => <th>{att.name}</th>)}
+                <tr>{attsToBeShown.map(att => <th key={att.name}>{att.name}</th>)}</tr>
               </thead>
               <tbody>
                 {accountingRecords.map(r =>
-                  <tr>
-                    {attsToBeShown.map(att => <td>{att.selector(r)}</td>)}
-                  </tr>
+                  <tr key={indexSelector(r)}>{attsToBeShown.map((att, i) => <td key={i}>{att.selector(r)}</td>)}</tr>
                 )}
               </tbody>
             </Table>
