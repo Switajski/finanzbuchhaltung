@@ -45,20 +45,25 @@ function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
-
-  const [editedRec, setEditedRec] = useState({
+  const [editedRec, setEditedRecord] = useState({
+    pos: undefined,
+    debitAccount: undefined,
+    creditAccount: undefined,
+    date: undefined,
+    accountedDate: undefined,
+    sum: undefined,
+    text: undefined,
+    tax: undefined
   })
 
-  const [debitAccount, setDebitAccount] = useState("")
   const onDebitAccountChange = e => {
     const v = e.target.value
-    !isNaN(v) && setDebitAccount(v)
+    !isNaN(v) && setEditedRecord({ debitAccount: v })
   }
 
-  const [creditAccount, setCreditAccount] = useState("")
   const onCreditAccountChange = e => {
     const v = e.target.value
-    !isNaN(v) && setCreditAccount(v)
+    !isNaN(v) && setEditedRecord({ creditAccount: v })
   }
 
   useEffect(() => {
@@ -85,7 +90,7 @@ function App() {
         )
       })
       .catch(exc => setExceptions([...exceptions, exc]))
-  }, [])
+  }, [accountingRecords, exceptions])
 
   return (
     <ThemeProvider theme={clipperTheme}>
@@ -105,22 +110,28 @@ function App() {
           <Hr />
           <Padding>
             <Grid columns={3}>
-              <Cell><label>Position Nr.<Input size={6} /></label></Cell>
+              <Cell><label>Position Nr.<Input size={6}
+                value={editedRec.pos}
+                onChange={e => setEditedRecord({
+                  ...editedRec,
+                  pos: e.target.value
+                }
+                )} /></label></Cell>
               <Cell><label>Datum<Input size={8} /></label></Cell>
               <Cell><label>Buchungsdatum<Input size={8} /></label><br /></Cell>
             </Grid>
             <br />
             <AccountNumberInput
-              value={debitAccount}
+              value={editedRec.debitAccount}
               name="Konto Soll&nbsp;&nbsp;"
               options={accountPlan}
-              onValueSet={o => setDebitAccount(o.value)}
+              setValue={v => setEditedRecord({ ...editedRec, debitAccount: v })}
               onChange={onDebitAccountChange} />
             <br />
             <AccountNumberInput
-              value={creditAccount}
+              value={editedRec.creditAccount}
               name="Konto Haben&nbsp;"
-              onValueSet={o => setCreditAccount(o.value)}
+              setValue={v => setEditedRecord({ ...editedRec, creditAccount: v })}
               options={accountPlan}
               onChange={onCreditAccountChange} />
             <br />

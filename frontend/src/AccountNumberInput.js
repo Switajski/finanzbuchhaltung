@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { Input } from './UIComponents'
-import useKeys from './useKeys'
 
 const Dropdown = styled.div`
 ${props => !props.showDropdown && 'display:none;'}
@@ -24,19 +23,16 @@ function AccountNumberInput(props) {
     const [showDropdown, setDropdown] = useState(false)
     const [selected, setSelected] = useState(0)
 
-    const upHandler = (e) => {
-        if (e && props && props.options) {
-            if (e.key === "ArrowDown") {
-                setSelected(selected => selected + 1)
-            } else if (e.key === "ArrowUp") {
-                setSelected(selected => selected - 1)
-            } else if (e.key === "Enter") {
-                const selectedValue = props.options[selected]
-                selectedValue && props.onValueSet(selectedValue)
-            }
+    const upHandler = ({ key }) => {
+        if (key === "ArrowDown") {
+            setSelected(selected => selected + 1)
+        } else if (key === "ArrowUp") {
+            setSelected(selected => selected - 1)
+        } else if (key === "Enter") {
+            const selectedValue = props.options[selected]
+            selectedValue && props.setValue(selectedValue)
         }
     }
-    useKeys(upHandler)
 
     const onFocus = () => {
         setDropdown(true)
@@ -46,7 +42,7 @@ function AccountNumberInput(props) {
     }
 
     return <label>{props.name}
-        <Dropdown showDropdown={showDropdown} >
+        <Dropdown showDropdown={showDropdown}>
             <Ul>{props.options
                 .filter(o => {
                     if (props.value === "") return true;
@@ -58,7 +54,7 @@ function AccountNumberInput(props) {
         <Input size={7} {...props}
             onFocus={onFocus}
             onBlur={onBlur}
-            onKeyPress={upHandler}
+            onKeyUp={upHandler}
         />
     </label>
 }
