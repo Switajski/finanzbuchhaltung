@@ -14,23 +14,30 @@ background-color: ${props => props.theme.activeBg};
 const Ul = styled.ul`padding: 0 5px 0 5px;`
 const Li = styled.li`
 ${props => props.selected && ('color: ' + props.theme.emphasize + ';' + 'background-color:' + props.theme.emphasizeBg + ';')}
-&:hover {
-    background-color:${props => props.theme.emphasizeBg};
-    color:${props => props.theme.emphasize};
 }`
 
 function AccountNumberInput(props) {
     const [showDropdown, setDropdown] = useState(false)
     const [selected, setSelected] = useState(0)
 
+    const searchedOptions = props.options
+        .filter(o => {
+            if (props.value === "") return true;
+            const se = props.value + ""
+            return (o.value.indexOf(se) > -1)
+        })
+    if (selected > searchedOptions.length) {
+        setSelected(searchedOptions.length - 1)
+    }
+
     const upHandler = ({ key }) => {
-        if (key === "ArrowDown") {
+        if (key === "ArrowDown" && selected < searchedOptions.length - 1) {
             setSelected(selected => selected + 1)
-        } else if (key === "ArrowUp") {
+        } else if (key === "ArrowUp" && selected > 0) {
             setSelected(selected => selected - 1)
         } else if (key === "Enter") {
-            const selectedValue = props.options[selected]
-            selectedValue && props.setValue(selectedValue)
+            const selectedOption = props.options[selected]
+            selectedOption && props.setValue(selectedOption.value)
         }
     }
 
@@ -43,13 +50,13 @@ function AccountNumberInput(props) {
 
     return <label>{props.name}
         <Dropdown showDropdown={showDropdown}>
-            <Ul>{props.options
-                .filter(o => {
-                    if (props.value === "") return true;
-                    const se = props.value + ""
-                    return (o.value.indexOf(se) > -1)
-                })
-                .map((o, i) => <Li key={o.value} selected={i === selected}>{o.value} - {o.name}</Li>)}</Ul>
+            <Ul>{searchedOptions
+                .map((o, i) => <Li
+                    onMouseEnter={() => setSelected(i)}
+                    onMouseDown={() => props.setValue(o.value)}
+                    key={o.value}
+                    selected={i === selected}>{o.value} - {o.name}
+                </Li>)}</Ul>
         </Dropdown>
         <Input size={7} {...props}
             onFocus={onFocus}

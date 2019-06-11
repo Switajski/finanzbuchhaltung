@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled, { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import clipperTheme from './clipperTheme'
-import { Input, Hr } from './UIComponents'
+import { Input, Hr, MoneyInput } from './UIComponents'
 import AccountNumberInput from './AccountNumberInput'
 import { Grid, Cell } from 'styled-css-grid'
 import './App.css';
@@ -31,30 +31,39 @@ height:100%`
 const Padding = styled.div`
 padding: 5px 20px 5px 20px;`
 
-const indexSelector = r => r.rech_nr
+const indexSelector = r => r.pos
+
 const attsToBeShown = [
-  { name: "Pos.", selector: indexSelector },
-  { name: "Datum", selector: r => r.dat },
-  { name: "Soll", selector: r => r.konto },
-  { name: "Haben", selector: r => r.gegen },
-  { name: "Summe", selector: r => r.betrag_s },
-  { name: "Text", selector: r => r.btext },
+  // { name: "Pos.", selector: indexSelector },
+  // { name: "Datum", selector: r => r.dat },
+  // { name: "Soll", selector: r => r.konto },
+  // { name: "Haben", selector: r => r.gegen },
+  // { name: "Summe", selector: r => r.betrag_s },
+  // { name: "Text", selector: r => r.btext },
+
+  { name: "Pos.", selector: r => r.pos },
+  { name: "Datum", selector: r => r.date },
+  { name: "Soll", selector: r => r.debitAccount },
+  { name: "Haben", selector: r => r.creditAccount },
+  { name: "Summe", selector: r => r.sum },
+  { name: "Text", selector: r => r.text }
 ]
+const emptyRec = {
+  pos: '',
+  debitAccount: '',
+  creditAccount: '',
+  date: '',
+  accountedDate: '',
+  sum: "0.00",
+  text: '',
+  tax: ''
+}
 
 function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
-  const [editedRec, setEditedRecord] = useState({
-    pos: undefined,
-    debitAccount: undefined,
-    creditAccount: undefined,
-    date: undefined,
-    accountedDate: undefined,
-    sum: undefined,
-    text: undefined,
-    tax: undefined
-  })
+  const [editedRec, setEditedRecord] = useState({ ...emptyRec })
 
   const onDebitAccountChange = e => {
     const v = e.target.value
@@ -70,10 +79,11 @@ function App() {
     fetch("/accounting-records")
       .then(r => r.json())
       .then(r => {
-        setAccountingRecords(r
+        const records = r
           .slice(1)
-          .filter(r => r.datensatz === "A")
-          .sort((a, b) => b.rech_nr - a.rech_nr))
+          .sort((a, b) => indexSelector(b) - indexSelector(a))
+        setAccountingRecords(records)
+        setEditedRecord({ pos: indexSelector(records[0]) + 1 })
       })
       .catch(exc => setExceptions([...exceptions, exc]))
     fetch("/account-plan")
@@ -90,7 +100,15 @@ function App() {
         )
       })
       .catch(exc => setExceptions([...exceptions, exc]))
-  }, [accountingRecords, exceptions])
+  }, [])
+
+  const existsPosition = pos => accountingRecords
+    .map(r => indexSelector(r))
+    .includes(pos)
+
+  const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
+
+  const loadRecord = pos => setEditedRecord(getRecord(pos))
 
   return (
     <ThemeProvider theme={clipperTheme}>
@@ -98,7 +116,11 @@ function App() {
         <Header />
         <Content>
           {(exceptions.length > 0) && <div>
-            <h3>Exception occured</h3>{exceptions.map(e => e.message)}
+            <h3>Exception occured</h3>
+            {exceptions.map(e => <>
+              <h4>{e.message}</h4>
+              {JSON.stringify(e)}
+            </>)}
           </div>}
           <Padding>
             <Grid columns={3}>
@@ -115,8 +137,10 @@ function App() {
                 onChange={e => setEditedRecord({
                   ...editedRec,
                   pos: e.target.value
-                }
-                )} /></label></Cell>
+                })}
+                onBlur={() => existsPosition(editedRec.pos) ? loadRecord(editedRec.pos)
+                  : setEditedRecord({ ...emptyRec })}
+              /></label></Cell>
               <Cell><label>Datum<Input size={8} /></label></Cell>
               <Cell><label>Buchungsdatum<Input size={8} /></label><br /></Cell>
             </Grid>
@@ -136,7 +160,10 @@ function App() {
               onChange={onCreditAccountChange} />
             <br />
             <br />
-            <label>Summe<Input size={8} /></label>
+            <label>Summe<MoneyInput
+              value={editedRec.sum}
+              onChangeEvent={(e, maskedValue) => setEditedRecord({ ...editedRec, sum: maskedValue })}
+            /></label>
             &nbsp;&nbsp;<label>Steuerschl.<Input size={6} /></label><br />
             <label>Text&nbsp;<Input size={30} /></label>
           </Padding>

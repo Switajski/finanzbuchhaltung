@@ -149,6 +149,16 @@
         (reduce (partial read-field-val! dbf conv)
                 tmp fields)))))
 
+(defn read-accounting-records-group-by!
+  [dbf dbf-meta conv]
+  (map #(nth (nth % 1) 0)                                   ;1st datensatz always "A"
+       (group-by :rech_nr (read-records! dbf dbf-meta conv))))
+
+(defn read-accounting-records!
+  [dbf dbf-meta conv]
+  (map #(first %)                                           ;1st datensatz always "A", promise!
+       (partition-by :rech_nr (read-records! dbf dbf-meta conv))))
+
 (defn chars-to-int
   "Example of function that convert three characters to integer
   value. (It was a case when developer used a three char as index in
