@@ -48,10 +48,6 @@
                                                            :transform transform-accounting-record
                                                            )})
 
-           (GET "/accounting-records-old" [] {:status 200
-                                              :body   (stream! (str path "buchen.dbf")
-                                                               :reader dbf/read-accounting-records-group-by!
-                                                               :transform transform-accounting-record)})
            (GET "/account-plan" [] {:status 200
                                     :body   (stream! (str path "konten2.dbf"))})
            (route/not-found "Not Found"))

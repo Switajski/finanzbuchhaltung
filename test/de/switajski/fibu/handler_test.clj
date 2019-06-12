@@ -9,11 +9,6 @@
     (time (let [response (app (mock/request :get "/accounting-records"))]
             (is (= (:status response) 200)))))
 
-  (testing "accounting-records-group-by"
-    (time (let [response (app (mock/request :get "/accounting-records-old"))]
-            (is (= (:status response) 200)))))
-
-
   (testing "not-found route"
     (let [response (app (mock/request :get "/invalid"))]
       (is (= (:status response) 404))))
