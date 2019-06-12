@@ -20,6 +20,7 @@
    :text          (:btext r)
    :date          (:dat r)
    :accountedDate (:bdatum r)
+   :tax           (:vmsteuer r)
    :datensatz     (:datensatz r)
    })
 

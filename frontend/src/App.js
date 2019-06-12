@@ -1,46 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import styled, { ThemeProvider } from 'styled-components'
+import React, { useState, useEffect, useRef } from 'react'
+import { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import clipperTheme from './clipperTheme'
-import { Input, Hr, MoneyInput } from './UIComponents'
+import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Content } from './UIComponents'
+import CurrencyInput from './CurrencyInput'
 import AccountNumberInput from './AccountNumberInput'
+import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Grid, Cell } from 'styled-css-grid'
+import useKeys from './useKeys'
 import './App.css';
+import { Exception } from 'handlebars';
 
-const Screen = styled.div`
-height:600px;
-display: block;
-max-width:800px;
-margin-left:auto;
-margin-right:auto;
-margin-top: 1em;`
+const indexSelector = r => parseInt(r.pos)
 
-const Content = styled.div`
-height: 100%;
-overflow:hidden;
-border: 1px solid;`
-
-const Table = styled.table`
-width: 100%;`
-
-const Scrollable = styled.div`
-overflow:scroll;
-padding:0 20px 0 20px;
-height:100%`
-
-const Padding = styled.div`
-padding: 5px 20px 5px 20px;`
-
-const indexSelector = r => r.pos
-
-const attsToBeShown = [
-  // { name: "Pos.", selector: indexSelector },
-  // { name: "Datum", selector: r => r.dat },
-  // { name: "Soll", selector: r => r.konto },
-  // { name: "Haben", selector: r => r.gegen },
-  // { name: "Summe", selector: r => r.betrag_s },
-  // { name: "Text", selector: r => r.btext },
-
+const attsToBeShownInTable = [
   { name: "Pos.", selector: r => r.pos },
   { name: "Datum", selector: r => r.date },
   { name: "Soll", selector: r => r.debitAccount },
@@ -49,31 +22,83 @@ const attsToBeShown = [
   { name: "Text", selector: r => r.text }
 ]
 const emptyRec = {
-  pos: '',
+  pos: undefined,
   debitAccount: '',
   creditAccount: '',
   date: '',
   accountedDate: '',
-  sum: "0.00",
+  sum: '',
   text: '',
   tax: ''
 }
+
+const modeTextInStatusHeader = {
+  editMode: 'korrigiere',
+  newMode: 'neue',
+  default: ''
+}
+const modes = {
+  selectMode: 'Waehle Pos. Nr. aus',
+  newMode: 'Buche',
+  editMode: 'Korrigiere',
+}
+
+const onNumber = (v, callback) => !isNaN(v) && callback()
 
 function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
-  const [editedRec, setEditedRecord] = useState({ ...emptyRec })
+  const [editedPos, setEditedPos] = useState()
+  const [editedRec, setEditedRecord] = useState()
+  const [focusedElements, setFocus] = useState([])
 
-  const onDebitAccountChange = e => {
-    const v = e.target.value
-    !isNaN(v) && setEditedRecord({ debitAccount: v })
+  const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
+  const existsPosition = pos => accountingRecords
+    .map(r => indexSelector(r))
+    .includes(pos)
+  const isPositionValid = pos => existsPosition(pos) || pos === lastPos() + 1
+
+  const whichMode = () => {
+    if (accountingRecords.length === 0 || editedRec === undefined) {
+      return modes.selectMode
+    }
+    return existsPosition(editedRec.pos) ? modes.editMode : modes.newMode
+  }
+  const mode = whichMode()
+
+  const refs = {
+    pos: useRef(null),
+    date: useRef(null),
+    accountedDate: useRef(null),
+    debitAccount: useRef(null),
+    creditAccount: useRef(null),
+    sum: useRef(null),
+    tax: useRef(null),
+    text: useRef(null),
+  }
+  const refsOrder = Object.keys(refs)
+  function nextRef(key) {
+    const currentIndex = refsOrder.findIndex(v => key === v)
+    if (currentIndex === undefined)
+      throw Exception("Could not find ref of " + key)
+    if (currentIndex < refsOrder.length) {
+      console.log(key, refsOrder[currentIndex], refsOrder[currentIndex + 1])
+      return refs[refsOrder[currentIndex + 1]]
+    }
   }
 
-  const onCreditAccountChange = e => {
-    const v = e.target.value
-    !isNaN(v) && setEditedRecord({ creditAccount: v })
-  }
+  useEffect(() => { // focus inputs on mode change
+    if (mode === modes.newMode || mode === modes.editMode) {
+      refs.date.current.focus()
+    } else {
+      refs.pos.current.focus()
+    }
+  }, [mode, refs.date, refs.pos])
+
+  const lastPos = (records = accountingRecords) => records
+    .sort((a, b) => indexSelector(b) - indexSelector(a))
+    .map(indexSelector)[0]
 
   useEffect(() => {
     fetch("/accounting-records")
@@ -83,7 +108,9 @@ function App() {
           .slice(1)
           .sort((a, b) => indexSelector(b) - indexSelector(a))
         setAccountingRecords(records)
-        setEditedRecord({ pos: indexSelector(records[0]) + 1 })
+
+        const lastPos = indexSelector(records[0])
+        setEditedPos(lastPos + 1)
       })
       .catch(exc => setExceptions([...exceptions, exc]))
     fetch("/account-plan")
@@ -96,87 +123,156 @@ function App() {
                 name: r.name_kont,
                 value: r.konto_nr
               }
-            })
-        )
+            }))
       })
-      .catch(exc => setExceptions([...exceptions, exc]))
+      .catch(exc => setExceptions([exc]))
   }, [])
 
-  const existsPosition = pos => accountingRecords
-    .map(r => indexSelector(r))
-    .includes(pos)
+  const goSelectMode = () => {
+    setEditedRecord(undefined)
+  }
+  const goEditMode = pos => {
+    setEditedRecord(getRecord(pos))
+  }
+  const goNewMode = (pos = lastPos() + 1) => {
+    setEditedRecord({ ...emptyRec, pos: pos })
+  }
+  const select = editedPos => {
+    if (isPositionValid(editedPos)) {
+      existsPosition(editedPos) ? goEditMode(editedPos)
+        : goNewMode(editedPos)
+    }
+  }
+  const saveEditedRow = () => {
+    alert('to be implemented')
+  }
 
-  const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
+  useKeys((e) => {
+    if (e) {
+      if (e.key === 'Enter') {
+        if (mode === modes.selectMode) {
+          select(editedPos)
+        } else {
+          const focusedRef = focusedElements[focusedElements.length - 1]
+          nextRef(focusedRef) ? nextRef(focusedRef).current.focus() : saveEditedRow()
+        }
 
-  const loadRecord = pos => setEditedRecord(getRecord(pos))
+      } else if (e.key === 'Escape')
+        goSelectMode()
+    }
+  })
 
+  const isSelectMode = mode === modes.selectMode
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
         <Header />
         <Content>
-          {(exceptions.length > 0) && <div>
-            <h3>Exception occured</h3>
-            {exceptions.map(e => <>
-              <h4>{e.message}</h4>
-              {JSON.stringify(e)}
-            </>)}
-          </div>}
-          <Padding>
-            <Grid columns={3}>
-              <Cell>FIBU 2.1</Cell>
-              <Cell>laufende Buchung</Cell>
-              <Cell>Pfau</Cell>
-            </Grid>
-          </Padding>
+          <Exceptions exceptions={exceptions} />
+          <StatusHeader mode={modeTextInStatusHeader[mode] || modeTextInStatusHeader['default']} />
           <Hr />
           <Padding>
             <Grid columns={3}>
-              <Cell><label>Position Nr.<Input size={6}
-                value={editedRec.pos}
-                onChange={e => setEditedRecord({
-                  ...editedRec,
-                  pos: e.target.value
-                })}
-                onBlur={() => existsPosition(editedRec.pos) ? loadRecord(editedRec.pos)
-                  : setEditedRecord({ ...emptyRec })}
+              <Cell><label>Position Nr.<Input
+                size={6}
+                ref={refs.pos}
+                readOnly={mode !== modes.selectMode}
+                value={editedPos}
+                onChange={e => setEditedPos(parseInt(e.target.value))}
+                onFocus={() => setFocus([...focusedElements, 'pos'])}
               /></label></Cell>
-              <Cell><label>Datum<Input size={8} /></label></Cell>
-              <Cell><label>Buchungsdatum<Input size={8} /></label><br /></Cell>
-            </Grid>
-            <br />
-            <AccountNumberInput
-              value={editedRec.debitAccount}
-              name="Konto Soll&nbsp;&nbsp;"
-              options={accountPlan}
-              setValue={v => setEditedRecord({ ...editedRec, debitAccount: v })}
-              onChange={onDebitAccountChange} />
-            <br />
-            <AccountNumberInput
-              value={editedRec.creditAccount}
-              name="Konto Haben&nbsp;"
-              setValue={v => setEditedRecord({ ...editedRec, creditAccount: v })}
-              options={accountPlan}
-              onChange={onCreditAccountChange} />
-            <br />
-            <br />
-            <label>Summe<MoneyInput
-              value={editedRec.sum}
-              onChangeEvent={(e, maskedValue) => setEditedRecord({ ...editedRec, sum: maskedValue })}
-            /></label>
-            &nbsp;&nbsp;<label>Steuerschl.<Input size={6} /></label><br />
-            <label>Text&nbsp;<Input size={30} /></label>
-          </Padding>
 
+              {!isSelectMode && <><Cell><label>Datum<Input
+                size={8}
+                value={editedRec.date}
+                ref={refs.date}
+                onFocus={() => setFocus([...focusedElements, 'date'])}
+              /></label></Cell>
+
+                <Cell><label>Buchungsdatum<Input
+                  size={8}
+                  ref={refs.accountedDate}
+                  value={editedRec.accountedDate}
+                  onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
+                /></label><br /></Cell></>
+              }
+            </Grid>
+
+            {!isSelectMode && <>
+              <br />
+              <AccountNumberInput
+                value={editedRec.debitAccount}
+                name="Konto Soll&nbsp;&nbsp;"
+                ref={refs.debitAccount}
+                onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
+                options={accountPlan}
+                setValue={v => setEditedRecord({ ...editedRec, debitAccount: v })
+                }//setValue for mouse input TODO
+                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ debitAccount: target.value }))} //onchange for textinput
+              />
+              <br />
+
+              <AccountNumberInput
+                value={editedRec.creditAccount}
+                name="Konto Haben&nbsp;"
+                ref={refs.creditAccount}
+                onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
+                setValue={v => setEditedRecord({ ...editedRec, creditAccount: v })}
+                options={accountPlan}
+                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ creditAccount: target.value }))} />
+              <br />
+              <br />
+
+              <label>Summe<CurrencyInput
+                value={editedRec.sum}
+                ref={refs.sum}
+                onFocus={() => setFocus([...focusedElements, 'sum'])}
+                onChangeEvent={(e, maskedValue) => setEditedRecord({ ...editedRec, sum: maskedValue })}
+              /></label>
+
+              &nbsp; &nbsp;<label>Steuerschl.<Input
+                size={6}
+                ref={refs.tax}
+                onFocus={() => setFocus([...focusedElements, 'tax'])}
+                value={editedRec.tax}
+              /></label><br />
+
+              <label>Text&nbsp;<Input
+                size={30}
+                ref={refs.text}
+                onFocus={() => setFocus([...focusedElements, 'text'])}
+                value={editedRec.text}
+              /></label>
+            </>}
+          </Padding>
+          <KeyboardControls>
+            <KeyButton
+              active={!isSelectMode}
+              command={() => goSelectMode()}
+              key='ESC'
+              text='ESC: Abbrechen' />
+            <KeyButton />
+            <KeyButton />
+            <KeyButton />
+            <KeyButton
+              active
+              text={"Enter: " + mode}
+              command={() => {
+                if (existsPosition(editedPos))
+                  return goEditMode
+                else return goNewMode
+              }}
+            />
+          </KeyboardControls>
           <Hr />
           <Scrollable>
             <Table>
               <thead>
-                <tr>{attsToBeShown.map(att => <th key={att.name}>{att.name}</th>)}</tr>
+                <tr>{attsToBeShownInTable.map(att => <th key={att.name}>{att.name}</th>)}</tr>
               </thead>
               <tbody>
                 {accountingRecords.map(r =>
-                  <tr key={indexSelector(r)}>{attsToBeShown.map((att, i) => <td key={i}>{att.selector(r)}</td>)}</tr>
+                  <tr key={indexSelector(r)}>{attsToBeShownInTable.map((att, i) => <td key={i}>{att.selector(r)}</td>)}</tr>
                 )}
               </tbody>
             </Table>

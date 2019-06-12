@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import styled from 'styled-components'
 import { Input } from './UIComponents'
 
@@ -13,30 +13,38 @@ background-color: ${props => props.theme.activeBg};
 
 const Ul = styled.ul`padding: 0 5px 0 5px;`
 const Li = styled.li`
-${props => props.selected && ('color: ' + props.theme.emphasize + ';' + 'background-color:' + props.theme.emphasizeBg + ';')}
+${props => props.selected && ('color: ' + props.theme.variable + ';' + 'background-color:' + props.theme.variableBg + ';')}
 }`
 
-function AccountNumberInput(props) {
+function AccountNumberInput(props, ref) {
     const [showDropdown, setDropdown] = useState(false)
     const [selected, setSelected] = useState(0)
 
-    const searchedOptions = props.options
+    const inputRef = useRef(null)
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            inputRef.current.focus();
+        }
+    }));
+
+    const proposedOptions = props.options
         .filter(o => {
-            if (props.value === "") return true;
+            if (props.value === "" || props.value === undefined)
+                return true
             const se = props.value + ""
             return (o.value.indexOf(se) > -1)
         })
-    if (selected > searchedOptions.length) {
-        setSelected(searchedOptions.length - 1)
+    if (selected > proposedOptions.length) {
+        setSelected(proposedOptions.length - 1)
     }
 
     const upHandler = ({ key }) => {
-        if (key === "ArrowDown" && selected < searchedOptions.length - 1) {
+        if (key === "ArrowDown" && selected < proposedOptions.length - 1) {
             setSelected(selected => selected + 1)
         } else if (key === "ArrowUp" && selected > 0) {
             setSelected(selected => selected - 1)
         } else if (key === "Enter") {
-            const selectedOption = props.options[selected]
+            const selectedOption = proposedOptions[selected]
             selectedOption && props.setValue(selectedOption.value)
         }
     }
@@ -50,7 +58,7 @@ function AccountNumberInput(props) {
 
     return <label>{props.name}
         <Dropdown showDropdown={showDropdown}>
-            <Ul>{searchedOptions
+            <Ul>{proposedOptions
                 .map((o, i) => <Li
                     onMouseEnter={() => setSelected(i)}
                     onMouseDown={() => props.setValue(o.value)}
@@ -59,11 +67,15 @@ function AccountNumberInput(props) {
                 </Li>)}</Ul>
         </Dropdown>
         <Input size={7} {...props}
-            onFocus={onFocus}
+            ref={inputRef}
+            onFocus={() => {
+                onFocus()
+                props.onFocus && props.onFocus()
+            }}
             onBlur={onBlur}
             onKeyUp={upHandler}
         />
     </label>
 }
 
-export default AccountNumberInput
+export default forwardRef(AccountNumberInput)

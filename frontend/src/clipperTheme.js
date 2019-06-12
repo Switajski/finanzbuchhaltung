@@ -1,6 +1,7 @@
 const blue = "rgb(7,1,126)"
 const cyan = "rgb(0,110,107)"
 const white = "white"
+const yellow = "rgb(253,255,0)"
 const brightGrey = "rgb(179,179,179);"
 
 const clipperTheme = {
@@ -13,10 +14,10 @@ const clipperTheme = {
     active: blue,
     activeBg: brightGrey,
 
-    emphasize: cyan,
-    emphasizeBg: white,
+    deactived: blue,
+    emphasize: yellow,
 
-    header: white
+    header: white,
 };
 
 export default clipperTheme
