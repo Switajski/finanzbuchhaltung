@@ -19,6 +19,7 @@ function CurrencyInput(props, ref) {
             inputRef.current.focus();
         }
     }));
-    return <StyledInput ref={inputRef} {...props} />;
+
+    return <StyledInput ref={inputRef} {...props} onChange={onChange} />;
 }
 export default forwardRef(CurrencyInput);

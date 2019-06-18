@@ -45,6 +45,12 @@ const modes = {
 
 const onNumber = (v, callback) => !isNaN(v) && callback()
 
+const enterTextOn = (i, mode = modes.selectMode) => {
+  if (i === 0) return 'Waehle Pos. Nr. aus'
+  else if (i === 7) return mode === modes.editMode ? 'korrigiere' : 'buche'
+  else return 'naechstes Eingabefeld'
+}
+
 function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
@@ -78,13 +84,14 @@ function App() {
     text: useRef(null),
   }
   const refsOrder = Object.keys(refs)
+  const currentIndex = key => refsOrder.findIndex(v => key === v)
   function nextRef(key) {
-    const currentIndex = refsOrder.findIndex(v => key === v)
-    if (currentIndex === undefined)
+    const i = currentIndex(key)
+    if (i === undefined)
       throw Exception("Could not find ref of " + key)
-    if (currentIndex < refsOrder.length) {
-      console.log(key, refsOrder[currentIndex], refsOrder[currentIndex + 1])
-      return refs[refsOrder[currentIndex + 1]]
+    if (i < refsOrder.length) {
+      console.log(key, refsOrder[i], refsOrder[i + 1])
+      return refs[refsOrder[i + 1]]
     }
   }
 
@@ -146,6 +153,7 @@ function App() {
   const saveEditedRow = () => {
     alert('to be implemented')
   }
+  const currentFocusIndex = () => currentIndex(focusedElements[focusedElements.length - 1])
 
   useKeys((e) => {
     if (e) {
@@ -256,7 +264,7 @@ function App() {
             <KeyButton />
             <KeyButton
               active
-              text={"Enter: " + mode}
+              text={"Enter: " + enterTextOn(currentFocusIndex(), mode)}
               command={() => {
                 if (existsPosition(editedPos))
                   return goEditMode
