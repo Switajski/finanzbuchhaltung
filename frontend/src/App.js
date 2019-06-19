@@ -90,7 +90,6 @@ function App() {
     if (i === undefined)
       throw Exception("Could not find ref of " + key)
     if (i < refsOrder.length) {
-      console.log(key, refsOrder[i], refsOrder[i + 1])
       return refs[refsOrder[i + 1]]
     }
   }
