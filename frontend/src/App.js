@@ -2,19 +2,20 @@ import React, { useState, useEffect, useRef } from 'react'
 import { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import clipperTheme from './clipperTheme'
-import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Content, TrWithHover } from './UIComponents'
+import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
 import DateInput from './DateInput'
-import AccountNumberInput from './AccountNumberInput'
+import Select from './Select'
 import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Grid, Cell } from 'styled-css-grid'
 import useKeys from './useKeys'
 import './App.css';
 import { Exception } from 'handlebars';
+import validate from './validate'
 
 const indexSelector = r => parseInt(r.pos)
 
-const attsToBeShownInTable = [
+const attsInTable = [
   { name: "Pos.", selector: r => r.pos },
   { name: "Datum", selector: r => r.date },
   { name: "Soll", selector: r => r.debitAccount },
@@ -22,13 +23,13 @@ const attsToBeShownInTable = [
   { name: "Summe", selector: r => r.sum },
   { name: "Text", selector: r => r.text }
 ]
-const emptyRec = {
+const newRecordTemplate = {
   pos: undefined,
   debitAccount: '',
   creditAccount: '',
   date: '',
   accountedDate: '',
-  sum: '',
+  sum: '0.00',
   text: '',
   tax: ''
 }
@@ -46,31 +47,39 @@ const modes = {
 
 const onNumber = (v, callback) => !isNaN(v) && callback()
 
+const convertDate = date => {
+  const a = date.split('-')
+  const year = a[0].split('')
+  return a[2] + '.' + a[1] + '.' + year[2] + year[3]
+}
+
 const enterTextOn = (i, mode = modes.selectMode) => {
   if (i === 0) return 'Waehle Pos. Nr. aus'
   else if (i === 7) return mode === modes.editMode ? 'korrigiere' : 'buche'
   else return 'naechstes Eingabefeld'
 }
 
+
 function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
   const [editedPos, setEditedPos] = useState()
-  const [editedRec, setEditedRecord] = useState()
+  const [editedRecord, setEditedRecord] = useState()
   const [focusedElements, setFocus] = useState([])
+  const [taxes, setTaxes] = useState([])
 
+  const validations = validate(editedRecord, taxes.map(t => t.short), accountPlan.map(a => a.value))
   const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
   const existsPosition = pos => accountingRecords
     .map(r => indexSelector(r))
     .includes(pos)
   const isPositionValid = pos => existsPosition(pos) || pos === lastPos() + 1
-
   const whichMode = () => {
-    if (accountingRecords.length === 0 || editedRec === undefined) {
+    if (accountingRecords.length === 0 || editedRecord === undefined) {
       return modes.selectMode
     }
-    return existsPosition(editedRec.pos) ? modes.editMode : modes.newMode
+    return existsPosition(editedRecord.pos) ? modes.editMode : modes.newMode
   }
   const mode = whichMode()
 
@@ -114,13 +123,25 @@ function App() {
         const records = r
           .slice(1)
           .sort((a, b) => indexSelector(b) - indexSelector(a))
+          .map(a => {
+            return {
+              ...a,
+              date: convertDate(a.date),
+              accountedDate: convertDate(a.date)
+            }
+          })
         setAccountingRecords(records)
 
         const lastPos = indexSelector(records[0])
         setEditedPos(lastPos + 1)
+
+        const lastDate = records[0].date.slice(0)
+        newRecordTemplate.date = lastDate
+        newRecordTemplate.accountedDate = lastDate
       })
       .catch(exc => setExceptions([...exceptions, exc]))
-    fetch("/account-plan")
+
+    fetch("/account-plan") //TODO: use redux with state machine
       .then(r => r.json())
       .then(r => {
         setAccountPlan(
@@ -132,18 +153,23 @@ function App() {
               }
             }))
       })
+
+    fetch("/taxes")
+      .then(r => r.json())
+      .then(r => setTaxes(r))
       .catch(exc => setExceptions([exc]))
   }, [])
 
   const goSelectMode = () => {
     setEditedRecord(undefined)
+    setFocus([])
   }
   const goEditMode = pos => {
     setEditedPos(pos)
     setEditedRecord(getRecord(pos))
   }
   const goNewMode = (pos = lastPos() + 1) => {
-    setEditedRecord({ ...emptyRec, pos: pos })
+    setEditedRecord({ ...newRecordTemplate, pos: pos })
   }
   const select = editedPos => {
     if (isPositionValid(editedPos)) {
@@ -163,14 +189,27 @@ function App() {
           select(editedPos)
         } else {
           const focusedRef = focusedElements[focusedElements.length - 1]
-          nextRef(focusedRef) ? nextRef(focusedRef).current.focus() : saveEditedRow()
+          if (nextRef(focusedRef)) {
+            const validationMsgOfCurrentInput = validations[focusedElements[focusedElements.length - 1]]
+            validationMsgOfCurrentInput === undefined && nextRef(focusedRef).current.focus()
+          } else
+            saveEditedRow()
         }
 
       } else if (e.key === 'Escape')
         goSelectMode()
     }
-  })
+  }, [focusedElements, validations])
 
+  const hasBeenSelected = att => {
+    const focusedIndex = focusedElements.indexOf(att)
+    const focused = (focusedIndex > -1)
+    if (!focused)
+      return false
+
+    const currentFocus = (focusedIndex === focusedElements.length - 1)
+    return !currentFocus
+  }
   const isSelectMode = mode === modes.selectMode
   return (
     <ThemeProvider theme={clipperTheme}>
@@ -193,17 +232,19 @@ function App() {
 
               {!isSelectMode && <><Cell><label>Datum<DateInput
                 size={8}
-                value={editedRec.date}
+                value={editedRecord.date}
                 ref={refs.date}
-                setValue={(v) => setEditedRecord(() => { return { ...editedRec, date: v } })}
+                validationMsg={hasBeenSelected('date') && validations.date}
+                setValue={(v) => setEditedRecord(() => { return { ...editedRecord, date: v } })}
                 onFocus={() => setFocus([...focusedElements, 'date'])}
               /></label></Cell>
 
                 <Cell><label>Buchungsdatum<DateInput
                   size={8}
-                  value={editedRec.accountedDate}
+                  value={editedRecord.accountedDate}
                   ref={refs.accountedDate}
-                  setValue={(v) => setEditedRecord(() => { return { ...editedRec, accountedDate: v } })}
+                  validationMsg={hasBeenSelected('accountedDate') && validations.accountedDate}
+                  setValue={(v) => setEditedRecord(() => { return { ...editedRecord, accountedDate: v } })}
                   onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
                 /></label><br /></Cell></>
               }
@@ -211,49 +252,56 @@ function App() {
 
             {!isSelectMode && <>
               <br />
-              <AccountNumberInput
-                value={editedRec.debitAccount}
+              <Select
+                value={editedRecord.debitAccount}
                 name="Konto Soll&nbsp;&nbsp;"
                 ref={refs.debitAccount}
+                validationMsg={hasBeenSelected('debitAccount') && validations.debitAccount}
                 onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
                 options={accountPlan}
-                setValue={v => setEditedRecord({ ...editedRec, debitAccount: v })
+                setValue={v => setEditedRecord({ ...editedRecord, debitAccount: v })
                 }//setValue for mouse input TODO
-                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ debitAccount: target.value }))} //onchange for textinput
+                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, debitAccount: target.value }))} //onchange for textinput
               />
               <br />
-
-              <AccountNumberInput
-                value={editedRec.creditAccount}
+              {/** TODO: setValue and onChange twice same function */}
+              <Select
+                value={editedRecord.creditAccount}
                 name="Konto Haben&nbsp;"
                 ref={refs.creditAccount}
+                validationMsg={hasBeenSelected('creditAccount') && validations.creditAccount}
                 onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
-                setValue={v => setEditedRecord({ ...editedRec, creditAccount: v })}
+                setValue={v => setEditedRecord({ ...editedRecord, creditAccount: v })}
                 options={accountPlan}
-                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ creditAccount: target.value }))} />
+                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, creditAccount: target.value }))} />
               <br />
               <br />
 
               <label>Summe<CurrencyInput
-                value={editedRec.sum}
+                value={editedRecord.sum}
                 ref={refs.sum}
                 onFocus={() => setFocus([...focusedElements, 'sum'])}
-                onChangeEvent={(e, maskedValue) => setEditedRecord({ ...editedRec, sum: maskedValue })}
+                validationMsg={validations.sum}
+                setValue={value => setEditedRecord({ ...editedRecord, sum: value })}
               /></label>
 
-              &nbsp; &nbsp;<label>Steuerschl.<Input
-                size={6}
+              &nbsp; &nbsp;<label>Steuerschl.<Select
+                size={7}
                 ref={refs.tax}
+                validationsMsg={hasBeenSelected('tax') && validations.tax}
+                options={taxes.map(t => { return { value: t.short, name: t.name } })}
                 onFocus={() => setFocus([...focusedElements, 'tax'])}
-                value={editedRec.tax}
+                value={editedRecord.tax}
+                onChange={({ target }) => setEditedRecord({ ...editedRecord, tax: target.value })}
+                setValue={v => setEditedRecord({ ...editedRecord, tax: v })}
               /></label><br />
 
               <label>Text&nbsp;<Input
                 size={30}
                 ref={refs.text}
                 onFocus={() => setFocus([...focusedElements, 'text'])}
-                onChange={e => setEditedRecord({ ...editedRec, text: e.target.value })}
-                value={editedRec.text}
+                onChange={(e) => setEditedRecord({ ...editedRecord, text: e.target.value })}
+                value={editedRecord.text}
               /></label>
             </>}
           </Padding>
@@ -279,14 +327,14 @@ function App() {
           <Hr />
           <Scrollable>
             <Table>
-              <thead>
-                <tr>{attsToBeShownInTable.map(att => <th key={att.name}>{att.name}</th>)}</tr>
-              </thead>
+              <Thead>
+                <tr>{attsInTable.map(att => <Th key={att.name}>{att.name}</Th>)}</tr>
+              </Thead>
               <tbody>
                 {accountingRecords.map(r =>
                   <TrWithHover onClick={() => goEditMode(indexSelector(r))}
                     key={indexSelector(r)}>
-                    {attsToBeShownInTable.map((att, i) =>
+                    {attsInTable.map((att, i) =>
                       <td key={i}>
                         {att.selector(r)}
                       </td>

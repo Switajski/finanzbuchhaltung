@@ -1,6 +1,7 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { useState, forwardRef } from 'react'
 import styled from 'styled-components'
-import { Input } from './UIComponents'
+import useSelectAllOnFocus from './useSelectAllOnFocus'
+import { InputWithValidation } from './UIComponents'
 
 const Dropdown = styled.div`
 ${props => !props.showDropdown && 'display:none;'}
@@ -16,17 +17,11 @@ const Li = styled.li`
 ${props => props.selected && ('color: ' + props.theme.variable + ';' + 'background-color:' + props.theme.variableBg + ';')}
 }`
 
-function AccountNumberInput(props, ref) {
+function Select(props, ref) {
     const [showDropdown, setDropdown] = useState(false)
     const [selected, setSelected] = useState(0)
 
-    const inputRef = useRef(null)
-    useImperativeHandle(ref, () => ({
-        focus: () => {
-            inputRef.current.focus();
-        }
-    }));
-
+    const inputRef = useSelectAllOnFocus(ref, props.value)
     const proposedOptions = props.options
         .filter(o => {
             if (props.value === "" || props.value === undefined)
@@ -38,12 +33,12 @@ function AccountNumberInput(props, ref) {
         setSelected(proposedOptions.length - 1)
     }
 
-    const upHandler = ({ key }) => {
-        if (key === "ArrowDown" && selected < proposedOptions.length - 1) {
+    const upHandler = (e) => {
+        if (e.key === "ArrowDown" && selected < proposedOptions.length - 1) {
             setSelected(selected => selected + 1)
-        } else if (key === "ArrowUp" && selected > 0) {
+        } else if (e.key === "ArrowUp" && selected > 0) {
             setSelected(selected => selected - 1)
-        } else if (key === "Enter") {
+        } else if (e.key === "Enter") {
             const selectedOption = proposedOptions[selected]
             selectedOption && props.setValue(selectedOption.value)
         }
@@ -63,19 +58,23 @@ function AccountNumberInput(props, ref) {
                     onMouseEnter={() => setSelected(i)}
                     onMouseDown={() => props.setValue(o.value)}
                     key={o.value}
-                    selected={i === selected}>{o.value} - {o.name}
-                </Li>)}</Ul>
+                    selected={i === selected}
+                >
+                    {o.value} - {o.name}
+                </Li>)}
+            </Ul>
         </Dropdown>
-        <Input size={7} {...props}
+        <InputWithValidation size={7} {...props}
             ref={inputRef}
             onFocus={() => {
                 onFocus()
                 props.onFocus && props.onFocus()
             }}
             onBlur={onBlur}
-            onKeyUp={upHandler}
+            onKeyDown={upHandler}
         />
+        {props.validationMsg && '\u26A0'}
     </label>
 }
 
-export default forwardRef(AccountNumberInput)
+export default forwardRef(Select)

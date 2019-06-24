@@ -16,7 +16,7 @@ export const Emphasize = styled.span`
 color: ${props => props.theme.emphasize}`
 
 export const Screen = styled.div`
-height:600px;
+height: 90vh;
 display: block;
 max-width:900px;
 margin-left:auto;
@@ -36,6 +36,8 @@ cursor:pointer;
     background-color: ${props => props.theme.variableBg};
     color: ${props => props.active};
 }`
+export const Thead = styled.thead`text-align: left;`
+export const Th = styled.th`border-bottom: 1px solid;`
 
 export const Scrollable = styled.div`
 overflow:scroll;
@@ -45,13 +47,16 @@ height:100%`
 export const Input = styled.input`
 color: ${props => props.theme.variable};
 background-color: ${props => props.theme.variableBg};
-border:none;
+border: none;
 margin-left: 10px;
 &:focus {
     color: ${props => props.theme.active};
     background-color: ${props => props.theme.activeBg};
     border:none;
 }`
+export const InputWithValidation = styled(Input)`
+${props => props.validationMsg && 'background-color:' + props.theme.emphasize + ';'}
+`
 
 Input.defaultProps = {
     theme: {
