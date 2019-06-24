@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import clipperTheme from './clipperTheme'
-import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Content } from './UIComponents'
+import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Content, TrWithHover } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
 import DateInput from './DateInput'
 import AccountNumberInput from './AccountNumberInput'
@@ -139,6 +139,7 @@ function App() {
     setEditedRecord(undefined)
   }
   const goEditMode = pos => {
+    setEditedPos(pos)
     setEditedRecord(getRecord(pos))
   }
   const goNewMode = (pos = lastPos() + 1) => {
@@ -283,7 +284,14 @@ function App() {
               </thead>
               <tbody>
                 {accountingRecords.map(r =>
-                  <tr key={indexSelector(r)}>{attsToBeShownInTable.map((att, i) => <td key={i}>{att.selector(r)}</td>)}</tr>
+                  <TrWithHover onClick={() => goEditMode(indexSelector(r))}
+                    key={indexSelector(r)}>
+                    {attsToBeShownInTable.map((att, i) =>
+                      <td key={i}>
+                        {att.selector(r)}
+                      </td>
+                    )}
+                  </TrWithHover>
                 )}
               </tbody>
             </Table>

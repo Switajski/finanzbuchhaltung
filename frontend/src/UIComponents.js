@@ -30,6 +30,12 @@ border: 1px solid;`
 
 export const Table = styled.table`
 width: 100%;`
+export const TrWithHover = styled.tr`
+cursor:pointer;
+&:hover {
+    background-color: ${props => props.theme.variableBg};
+    color: ${props => props.active};
+}`
 
 export const Scrollable = styled.div`
 overflow:scroll;
