@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
+import React, { forwardRef } from 'react'
+import useSelectAllOnFocus from './useSelectAllOnFocus';
 import { Input } from './UIComponents'
 
 const MASK = '__.__.__'
-const M = MASK.split('')
-const fb = ((value, fallbackValue) => value ? value : fallbackValue)
 export const derivationByPlaceholders = (unmasked) => {
     let r = 0
     if (unmasked.length > 2)
@@ -27,17 +26,12 @@ export const mask = value => {
 export const unmask = value => value
     .replace(/\./g, '')
     .replace(/_/g, '')
-
+// TODO: fix deletion of a char in the middle / cursor position
+// OR: just fix dots in date on blur. This auto completion help is too complicated for too little help
 function DateInput(props, ref) {
-    const inputRef = useRef();
-    useImperativeHandle(ref, () => ({
-        focus: () => {
-            inputRef.current.focus();
-        }
-    }));
+    const inputRef = useSelectAllOnFocus(ref, props.value)
 
     const onChange = ({ target }) => {
-        console.log(target)
         if (inputRef.current
             && (inputRef.current.selectionStart !== undefined)) {
             const rv = target.value
@@ -48,6 +42,11 @@ function DateInput(props, ref) {
             }
         }
     }
+
+    const onFocus = (args) => {
+        props.onFocus(args)
+    }
+
     return <Input
         rows={1}
         ref={inputRef}
@@ -55,6 +54,7 @@ function DateInput(props, ref) {
         placeholder={MASK}
         onChange={onChange}
         value={props.value}
+        onFocus={onFocus}
     />
 }
 export default forwardRef(DateInput);

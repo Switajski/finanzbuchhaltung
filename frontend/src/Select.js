@@ -1,5 +1,6 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { useState, forwardRef } from 'react'
 import styled from 'styled-components'
+import useSelectAllOnFocus from './useSelectAllOnFocus'
 import { Input } from './UIComponents'
 
 const Dropdown = styled.div`
@@ -16,17 +17,11 @@ const Li = styled.li`
 ${props => props.selected && ('color: ' + props.theme.variable + ';' + 'background-color:' + props.theme.variableBg + ';')}
 }`
 
-function AccountNumberInput(props, ref) {
+function Select(props, ref) {
     const [showDropdown, setDropdown] = useState(false)
     const [selected, setSelected] = useState(0)
 
-    const inputRef = useRef(null)
-    useImperativeHandle(ref, () => ({
-        focus: () => {
-            inputRef.current.focus();
-        }
-    }));
-
+    const inputRef = useSelectAllOnFocus(ref, props.value)
     const proposedOptions = props.options
         .filter(o => {
             if (props.value === "" || props.value === undefined)
@@ -63,8 +58,11 @@ function AccountNumberInput(props, ref) {
                     onMouseEnter={() => setSelected(i)}
                     onMouseDown={() => props.setValue(o.value)}
                     key={o.value}
-                    selected={i === selected}>{o.value} - {o.name}
-                </Li>)}</Ul>
+                    selected={i === selected}
+                >
+                    {o.value} - {o.name}
+                </Li>)}
+            </Ul>
         </Dropdown>
         <Input size={7} {...props}
             ref={inputRef}
@@ -78,4 +76,4 @@ function AccountNumberInput(props, ref) {
     </label>
 }
 
-export default forwardRef(AccountNumberInput)
+export default forwardRef(Select)

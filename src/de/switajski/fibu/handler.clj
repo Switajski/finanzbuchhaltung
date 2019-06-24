@@ -4,6 +4,7 @@
             [ring.middleware.json :as middleware]
             [compojure.route :as route]
             [de.switajski.dbf :as dbf]
+            [de.switajski.ednreader :as edn]
             [clojure.java.io :as io]
             [clojure.data.json :as json]
             [ring.util.io :as ring-io])
@@ -51,6 +52,8 @@
 
            (GET "/account-plan" [] {:status 200
                                     :body   (stream! (str path "konten2.dbf"))})
+           (GET "/taxes" [] {:status 200
+                             :body   (edn/read (str path "taxes.edn"))})
            (route/not-found "Not Found"))
 
 (def app

@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react'
 import { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import clipperTheme from './clipperTheme'
-import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Content, TrWithHover } from './UIComponents'
+import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
 import DateInput from './DateInput'
-import AccountNumberInput from './AccountNumberInput'
+import Select from './Select'
 import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Grid, Cell } from 'styled-css-grid'
 import useKeys from './useKeys'
@@ -22,13 +22,13 @@ const attsToBeShownInTable = [
   { name: "Summe", selector: r => r.sum },
   { name: "Text", selector: r => r.text }
 ]
-const emptyRec = {
+const newRecordTemplate = {
   pos: undefined,
   debitAccount: '',
   creditAccount: '',
   date: '',
   accountedDate: '',
-  sum: '',
+  sum: '0.00',
   text: '',
   tax: ''
 }
@@ -46,6 +46,12 @@ const modes = {
 
 const onNumber = (v, callback) => !isNaN(v) && callback()
 
+const convertDate = date => {
+  const a = date.split('-')
+  const year = a[0].split('')
+  return a[2] + '.' + a[1] + '.' + year[2] + year[3]
+}
+
 const enterTextOn = (i, mode = modes.selectMode) => {
   if (i === 0) return 'Waehle Pos. Nr. aus'
   else if (i === 7) return mode === modes.editMode ? 'korrigiere' : 'buche'
@@ -57,8 +63,9 @@ function App() {
   const [accountPlan, setAccountPlan] = useState([])
   const [exceptions, setExceptions] = useState([])
   const [editedPos, setEditedPos] = useState()
-  const [editedRec, setEditedRecord] = useState()
+  const [editedRecord, setEditedRecord] = useState()
   const [focusedElements, setFocus] = useState([])
+  const [taxes, setTaxes] = useState([])
 
   const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
   const existsPosition = pos => accountingRecords
@@ -67,10 +74,10 @@ function App() {
   const isPositionValid = pos => existsPosition(pos) || pos === lastPos() + 1
 
   const whichMode = () => {
-    if (accountingRecords.length === 0 || editedRec === undefined) {
+    if (accountingRecords.length === 0 || editedRecord === undefined) {
       return modes.selectMode
     }
-    return existsPosition(editedRec.pos) ? modes.editMode : modes.newMode
+    return existsPosition(editedRecord.pos) ? modes.editMode : modes.newMode
   }
   const mode = whichMode()
 
@@ -114,12 +121,24 @@ function App() {
         const records = r
           .slice(1)
           .sort((a, b) => indexSelector(b) - indexSelector(a))
+          .map(a => {
+            return {
+              ...a,
+              date: convertDate(a.date),
+              accountedDate: convertDate(a.date)
+            }
+          })
         setAccountingRecords(records)
 
         const lastPos = indexSelector(records[0])
         setEditedPos(lastPos + 1)
+
+        const lastDate = records[0].date.slice(0)
+        newRecordTemplate.date = lastDate
+        newRecordTemplate.accountedDate = lastDate
       })
       .catch(exc => setExceptions([...exceptions, exc]))
+
     fetch("/account-plan")
       .then(r => r.json())
       .then(r => {
@@ -132,6 +151,10 @@ function App() {
               }
             }))
       })
+
+    fetch("/taxes")
+      .then(r => r.json())
+      .then(r => setTaxes(r))
       .catch(exc => setExceptions([exc]))
   }, [])
 
@@ -143,7 +166,7 @@ function App() {
     setEditedRecord(getRecord(pos))
   }
   const goNewMode = (pos = lastPos() + 1) => {
-    setEditedRecord({ ...emptyRec, pos: pos })
+    setEditedRecord({ ...newRecordTemplate, pos: pos })
   }
   const select = editedPos => {
     if (isPositionValid(editedPos)) {
@@ -193,17 +216,17 @@ function App() {
 
               {!isSelectMode && <><Cell><label>Datum<DateInput
                 size={8}
-                value={editedRec.date}
+                value={editedRecord.date}
                 ref={refs.date}
-                setValue={(v) => setEditedRecord(() => { return { ...editedRec, date: v } })}
+                setValue={(v) => setEditedRecord(() => { return { ...editedRecord, date: v } })}
                 onFocus={() => setFocus([...focusedElements, 'date'])}
               /></label></Cell>
 
                 <Cell><label>Buchungsdatum<DateInput
                   size={8}
-                  value={editedRec.accountedDate}
+                  value={editedRecord.accountedDate}
                   ref={refs.accountedDate}
-                  setValue={(v) => setEditedRecord(() => { return { ...editedRec, accountedDate: v } })}
+                  setValue={(v) => setEditedRecord(() => { return { ...editedRecord, accountedDate: v } })}
                   onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
                 /></label><br /></Cell></>
               }
@@ -211,49 +234,52 @@ function App() {
 
             {!isSelectMode && <>
               <br />
-              <AccountNumberInput
-                value={editedRec.debitAccount}
+              <Select
+                value={editedRecord.debitAccount}
                 name="Konto Soll&nbsp;&nbsp;"
                 ref={refs.debitAccount}
                 onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
                 options={accountPlan}
-                setValue={v => setEditedRecord({ ...editedRec, debitAccount: v })
+                setValue={v => setEditedRecord({ ...editedRecord, debitAccount: v })
                 }//setValue for mouse input TODO
                 onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ debitAccount: target.value }))} //onchange for textinput
               />
               <br />
 
-              <AccountNumberInput
-                value={editedRec.creditAccount}
+              <Select
+                value={editedRecord.creditAccount}
                 name="Konto Haben&nbsp;"
                 ref={refs.creditAccount}
                 onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
-                setValue={v => setEditedRecord({ ...editedRec, creditAccount: v })}
+                setValue={v => setEditedRecord({ ...editedRecord, creditAccount: v })}
                 options={accountPlan}
                 onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ creditAccount: target.value }))} />
               <br />
               <br />
 
               <label>Summe<CurrencyInput
-                value={editedRec.sum}
+                value={editedRecord.sum}
                 ref={refs.sum}
                 onFocus={() => setFocus([...focusedElements, 'sum'])}
-                onChangeEvent={(e, maskedValue) => setEditedRecord({ ...editedRec, sum: maskedValue })}
+                setValue={value => setEditedRecord({ ...editedRecord, sum: value })}
               /></label>
 
-              &nbsp; &nbsp;<label>Steuerschl.<Input
-                size={6}
+              &nbsp; &nbsp;<label>Steuerschl.<Select
+                size={7}
                 ref={refs.tax}
+                options={taxes.map(t => { return { value: t.key, name: t.name } })}
                 onFocus={() => setFocus([...focusedElements, 'tax'])}
-                value={editedRec.tax}
+                value={editedRecord.tax}
+                onChange={({ target }) => setEditedRecord({ ...editedRecord, tax: target.value })}
+                setValue={v => setEditedRecord({ ...editedRecord, tax: v })}
               /></label><br />
 
               <label>Text&nbsp;<Input
                 size={30}
                 ref={refs.text}
                 onFocus={() => setFocus([...focusedElements, 'text'])}
-                onChange={e => setEditedRecord({ ...editedRec, text: e.target.value })}
-                value={editedRec.text}
+                onChange={(e) => setEditedRecord({ ...editedRecord, text: e.target.value })}
+                value={editedRecord.text}
               /></label>
             </>}
           </Padding>
@@ -279,9 +305,9 @@ function App() {
           <Hr />
           <Scrollable>
             <Table>
-              <thead>
-                <tr>{attsToBeShownInTable.map(att => <th key={att.name}>{att.name}</th>)}</tr>
-              </thead>
+              <Thead>
+                <tr>{attsToBeShownInTable.map(att => <Th key={att.name}>{att.name}</Th>)}</tr>
+              </Thead>
               <tbody>
                 {accountingRecords.map(r =>
                   <TrWithHover onClick={() => goEditMode(indexSelector(r))}

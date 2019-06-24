@@ -1,5 +1,6 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { forwardRef } from 'react'
 import styled from 'styled-components'
+import useSelectAllOnFocus from './useSelectAllOnFocus';
 
 const StyledInput = styled.input`
 color: ${props => props.theme.variable};
@@ -14,19 +15,13 @@ margin-left: 10px;
 }`
 
 function CurrencyInput(props, ref) {
-    const inputRef = useRef();
-    useImperativeHandle(ref, () => ({
-        focus: () => {
-            inputRef.current.focus();
-        }
-    }));
-    const [value, setValue] = useState('')
+    const inputRef = useSelectAllOnFocus(ref, props.value)
 
     const onChange = ({ target }) => {
         const v = target.value.replace(',', '.')
         if (!isNaN(v))
-            setValue(target.value)
+            props.setValue(target.value)
     }
-    return <StyledInput ref={inputRef} {...props} onChange={onChange} value={value} />;
+    return <StyledInput ref={inputRef} {...props} onChange={onChange} />;
 }
 export default forwardRef(CurrencyInput);

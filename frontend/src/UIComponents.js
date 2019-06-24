@@ -16,7 +16,7 @@ export const Emphasize = styled.span`
 color: ${props => props.theme.emphasize}`
 
 export const Screen = styled.div`
-height:600px;
+height: 90vh;
 display: block;
 max-width:900px;
 margin-left:auto;
@@ -36,6 +36,8 @@ cursor:pointer;
     background-color: ${props => props.theme.variableBg};
     color: ${props => props.active};
 }`
+export const Thead = styled.thead`text-align: left;`
+export const Th = styled.th`border-bottom: 1px solid;`
 
 export const Scrollable = styled.div`
 overflow:scroll;
