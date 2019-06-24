@@ -53,6 +53,7 @@ Input.defaultProps = {
         input: "black"
     }
 }
+
 export const Hr = styled.hr`
 margin:0;
 border:0.5px solid;`

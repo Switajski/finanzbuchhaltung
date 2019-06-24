@@ -4,6 +4,7 @@ import Header from './Header'
 import clipperTheme from './clipperTheme'
 import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Content } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
+import DateInput from './DateInput'
 import AccountNumberInput from './AccountNumberInput'
 import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Grid, Cell } from 'styled-css-grid'
@@ -189,17 +190,19 @@ function App() {
                 onFocus={() => setFocus([...focusedElements, 'pos'])}
               /></label></Cell>
 
-              {!isSelectMode && <><Cell><label>Datum<Input
+              {!isSelectMode && <><Cell><label>Datum<DateInput
                 size={8}
                 value={editedRec.date}
                 ref={refs.date}
+                setValue={(v) => setEditedRecord(() => { return { ...editedRec, date: v } })}
                 onFocus={() => setFocus([...focusedElements, 'date'])}
               /></label></Cell>
 
-                <Cell><label>Buchungsdatum<Input
+                <Cell><label>Buchungsdatum<DateInput
                   size={8}
-                  ref={refs.accountedDate}
                   value={editedRec.accountedDate}
+                  ref={refs.accountedDate}
+                  setValue={(v) => setEditedRecord(() => { return { ...editedRec, accountedDate: v } })}
                   onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
                 /></label><br /></Cell></>
               }
@@ -248,6 +251,7 @@ function App() {
                 size={30}
                 ref={refs.text}
                 onFocus={() => setFocus([...focusedElements, 'text'])}
+                onChange={e => setEditedRecord({ ...editedRec, text: e.target.value })}
                 value={editedRec.text}
               /></label>
             </>}
