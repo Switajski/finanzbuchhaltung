@@ -1,7 +1,7 @@
 import React, { useState, forwardRef } from 'react'
 import styled from 'styled-components'
 import useSelectAllOnFocus from './useSelectAllOnFocus'
-import { Input } from './UIComponents'
+import { InputWithValidation } from './UIComponents'
 
 const Dropdown = styled.div`
 ${props => !props.showDropdown && 'display:none;'}
@@ -33,12 +33,12 @@ function Select(props, ref) {
         setSelected(proposedOptions.length - 1)
     }
 
-    const upHandler = ({ key }) => {
-        if (key === "ArrowDown" && selected < proposedOptions.length - 1) {
+    const upHandler = (e) => {
+        if (e.key === "ArrowDown" && selected < proposedOptions.length - 1) {
             setSelected(selected => selected + 1)
-        } else if (key === "ArrowUp" && selected > 0) {
+        } else if (e.key === "ArrowUp" && selected > 0) {
             setSelected(selected => selected - 1)
-        } else if (key === "Enter") {
+        } else if (e.key === "Enter") {
             const selectedOption = proposedOptions[selected]
             selectedOption && props.setValue(selectedOption.value)
         }
@@ -64,15 +64,16 @@ function Select(props, ref) {
                 </Li>)}
             </Ul>
         </Dropdown>
-        <Input size={7} {...props}
+        <InputWithValidation size={7} {...props}
             ref={inputRef}
             onFocus={() => {
                 onFocus()
                 props.onFocus && props.onFocus()
             }}
             onBlur={onBlur}
-            onKeyUp={upHandler}
+            onKeyDown={upHandler}
         />
+        {props.validationMsg && '\u26A0'}
     </label>
 }
 

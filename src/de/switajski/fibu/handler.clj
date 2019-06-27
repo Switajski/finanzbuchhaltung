@@ -4,6 +4,7 @@
             [ring.middleware.json :as middleware]
             [compojure.route :as route]
             [de.switajski.dbf :as dbf]
+            [de.switajski.writer :refer :all]
             [de.switajski.ednreader :as edn]
             [clojure.java.io :as io]
             [clojure.data.json :as json]
@@ -22,8 +23,7 @@
    :date          (:dat r)
    :accountedDate (:bdatum r)
    :tax           (:vmsteuer r)
-   :datensatz     (:datensatz r)
-   })
+   :datensatz     (:datensatz r)})
 
 (defn stream!
   [in-file & {:keys [conv transform reader]
@@ -31,30 +31,35 @@
                      transform #(when true %)
                      reader    dbf/read-records!}}]
   (ring-io/piped-input-stream
-    #(let [writer (io/make-writer % {})
-           dbf-meta (dbf/read-dbf-meta in-file)
-           dbf (BufferedInputStream. (FileInputStream. ^String in-file)
-                                     BUFFER-SIZE)]
-       (.write writer "[{}")
-       (doseq [rec (reader dbf dbf-meta conv)]
-         (when (not (:deleted rec))
-           (.write writer ",")
-           (json/write (transform rec) writer)))
-       (.write writer "]")
-       (.flush writer))))
+   #(let [writer (io/make-writer % {})
+          dbf-meta (dbf/read-dbf-meta in-file)
+          dbf (BufferedInputStream. (FileInputStream. ^String in-file)
+                                    BUFFER-SIZE)]
+      (.write writer "[{}")
+      (doseq [rec (reader dbf dbf-meta conv)]
+        (when (not (:deleted rec))
+          (.write writer ",")
+          (json/write (transform rec) writer)))
+      (.write writer "]")
+      (.flush writer))))
 
 (defroutes app-routes
-           (GET "/accounting-records" [] {:status 200
-                                          :body   (stream! (str path "buchen.dbf")
-                                                           :reader dbf/read-accounting-records!
-                                                           :transform transform-accounting-record
-                                                           )})
+  (GET "/accounting-records" [] {:status 200
+                                 :body   (stream! (str path "buchen.dbf")
+                                                  :reader dbf/read-accounting-records!
+                                                  :transform transform-accounting-record)})
 
-           (GET "/account-plan" [] {:status 200
-                                    :body   (stream! (str path "konten2.dbf"))})
-           (GET "/taxes" [] {:status 200
-                             :body   (edn/read (str path "taxes.edn"))})
-           (route/not-found "Not Found"))
+  (GET "/account-plan" [] {:status 200
+                           :body   (stream! (str path "konten2.dbf"))})
+  (GET "/taxes" [] {:status 200
+                    :body   (edn/read (str path "taxes.edn"))})
+  (POST "/create-record" request
+    (let [body (:body request)
+          result (add-record "/tmp/buchen_test.dbf" (into-array Object body))]
+      {:status 200
+       :body   result}))
+
+  (route/not-found " Not Found"))
 
 (def app
   (-> (handler/site app-routes)

@@ -47,13 +47,16 @@ height:100%`
 export const Input = styled.input`
 color: ${props => props.theme.variable};
 background-color: ${props => props.theme.variableBg};
-border:none;
+border: none;
 margin-left: 10px;
 &:focus {
     color: ${props => props.theme.active};
     background-color: ${props => props.theme.activeBg};
     border:none;
 }`
+export const InputWithValidation = styled(Input)`
+${props => props.validationMsg && 'background-color:' + props.theme.emphasize + ';'}
+`
 
 Input.defaultProps = {
     theme: {

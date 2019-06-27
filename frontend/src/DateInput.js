@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react'
 import useSelectAllOnFocus from './useSelectAllOnFocus';
-import { Input } from './UIComponents'
+import { InputWithValidation, Emphasize } from './UIComponents'
 
 const MASK = '__.__.__'
 export const derivationByPlaceholders = (unmasked) => {
@@ -47,7 +47,7 @@ function DateInput(props, ref) {
         props.onFocus(args)
     }
 
-    return <Input
+    return <><InputWithValidation
         rows={1}
         ref={inputRef}
         {...props}
@@ -56,5 +56,7 @@ function DateInput(props, ref) {
         value={props.value}
         onFocus={onFocus}
     />
+        <Emphasize>{props.validationMsg && '\u26A0'}</Emphasize>
+    </>
 }
 export default forwardRef(DateInput);

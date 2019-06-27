@@ -11,10 +11,11 @@ import { Grid, Cell } from 'styled-css-grid'
 import useKeys from './useKeys'
 import './App.css';
 import { Exception } from 'handlebars';
+import validate from './validate'
 
 const indexSelector = r => parseInt(r.pos)
 
-const attsToBeShownInTable = [
+const attsInTable = [
   { name: "Pos.", selector: r => r.pos },
   { name: "Datum", selector: r => r.date },
   { name: "Soll", selector: r => r.debitAccount },
@@ -58,6 +59,7 @@ const enterTextOn = (i, mode = modes.selectMode) => {
   else return 'naechstes Eingabefeld'
 }
 
+
 function App() {
   const [accountingRecords, setAccountingRecords] = useState([])
   const [accountPlan, setAccountPlan] = useState([])
@@ -67,12 +69,12 @@ function App() {
   const [focusedElements, setFocus] = useState([])
   const [taxes, setTaxes] = useState([])
 
+  const validations = validate(editedRecord, taxes.map(t => t.short), accountPlan.map(a => a.value))
   const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
   const existsPosition = pos => accountingRecords
     .map(r => indexSelector(r))
     .includes(pos)
   const isPositionValid = pos => existsPosition(pos) || pos === lastPos() + 1
-
   const whichMode = () => {
     if (accountingRecords.length === 0 || editedRecord === undefined) {
       return modes.selectMode
@@ -139,7 +141,7 @@ function App() {
       })
       .catch(exc => setExceptions([...exceptions, exc]))
 
-    fetch("/account-plan")
+    fetch("/account-plan") //TODO: use redux with state machine
       .then(r => r.json())
       .then(r => {
         setAccountPlan(
@@ -160,6 +162,7 @@ function App() {
 
   const goSelectMode = () => {
     setEditedRecord(undefined)
+    setFocus([])
   }
   const goEditMode = pos => {
     setEditedPos(pos)
@@ -175,7 +178,13 @@ function App() {
     }
   }
   const saveEditedRow = () => {
-    alert('to be implemented')
+    fetch('/create-record', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(editedRecord)
+    })
   }
   const currentFocusIndex = () => currentIndex(focusedElements[focusedElements.length - 1])
 
@@ -186,14 +195,27 @@ function App() {
           select(editedPos)
         } else {
           const focusedRef = focusedElements[focusedElements.length - 1]
-          nextRef(focusedRef) ? nextRef(focusedRef).current.focus() : saveEditedRow()
+          if (nextRef(focusedRef)) {
+            const validationMsgOfCurrentInput = validations[focusedElements[focusedElements.length - 1]]
+            validationMsgOfCurrentInput === undefined && nextRef(focusedRef).current.focus()
+          } else
+            saveEditedRow()
         }
 
       } else if (e.key === 'Escape')
         goSelectMode()
     }
-  })
+  }, [focusedElements, validations])
 
+  const hasBeenSelected = att => {
+    const focusedIndex = focusedElements.indexOf(att)
+    const focused = (focusedIndex > -1)
+    if (!focused)
+      return false
+
+    const currentFocus = (focusedIndex === focusedElements.length - 1)
+    return !currentFocus
+  }
   const isSelectMode = mode === modes.selectMode
   return (
     <ThemeProvider theme={clipperTheme}>
@@ -218,6 +240,7 @@ function App() {
                 size={8}
                 value={editedRecord.date}
                 ref={refs.date}
+                validationMsg={hasBeenSelected('date') && validations.date}
                 setValue={(v) => setEditedRecord(() => { return { ...editedRecord, date: v } })}
                 onFocus={() => setFocus([...focusedElements, 'date'])}
               /></label></Cell>
@@ -226,6 +249,7 @@ function App() {
                   size={8}
                   value={editedRecord.accountedDate}
                   ref={refs.accountedDate}
+                  validationMsg={hasBeenSelected('accountedDate') && validations.accountedDate}
                   setValue={(v) => setEditedRecord(() => { return { ...editedRecord, accountedDate: v } })}
                   onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
                 /></label><br /></Cell></>
@@ -238,22 +262,24 @@ function App() {
                 value={editedRecord.debitAccount}
                 name="Konto Soll&nbsp;&nbsp;"
                 ref={refs.debitAccount}
+                validationMsg={hasBeenSelected('debitAccount') && validations.debitAccount}
                 onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
                 options={accountPlan}
                 setValue={v => setEditedRecord({ ...editedRecord, debitAccount: v })
                 }//setValue for mouse input TODO
-                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ debitAccount: target.value }))} //onchange for textinput
+                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, debitAccount: target.value }))} //onchange for textinput
               />
               <br />
-
+              {/** TODO: setValue and onChange twice same function */}
               <Select
                 value={editedRecord.creditAccount}
                 name="Konto Haben&nbsp;"
                 ref={refs.creditAccount}
+                validationMsg={hasBeenSelected('creditAccount') && validations.creditAccount}
                 onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
                 setValue={v => setEditedRecord({ ...editedRecord, creditAccount: v })}
                 options={accountPlan}
-                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ creditAccount: target.value }))} />
+                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, creditAccount: target.value }))} />
               <br />
               <br />
 
@@ -261,13 +287,15 @@ function App() {
                 value={editedRecord.sum}
                 ref={refs.sum}
                 onFocus={() => setFocus([...focusedElements, 'sum'])}
+                validationMsg={validations.sum}
                 setValue={value => setEditedRecord({ ...editedRecord, sum: value })}
               /></label>
 
               &nbsp; &nbsp;<label>Steuerschl.<Select
                 size={7}
                 ref={refs.tax}
-                options={taxes.map(t => { return { value: t.key, name: t.name } })}
+                validationsMsg={hasBeenSelected('tax') && validations.tax}
+                options={taxes.map(t => { return { value: t.short, name: t.name } })}
                 onFocus={() => setFocus([...focusedElements, 'tax'])}
                 value={editedRecord.tax}
                 onChange={({ target }) => setEditedRecord({ ...editedRecord, tax: target.value })}
@@ -306,13 +334,13 @@ function App() {
           <Scrollable>
             <Table>
               <Thead>
-                <tr>{attsToBeShownInTable.map(att => <Th key={att.name}>{att.name}</Th>)}</tr>
+                <tr>{attsInTable.map(att => <Th key={att.name}>{att.name}</Th>)}</tr>
               </Thead>
               <tbody>
                 {accountingRecords.map(r =>
                   <TrWithHover onClick={() => goEditMode(indexSelector(r))}
                     key={indexSelector(r)}>
-                    {attsToBeShownInTable.map((att, i) =>
+                    {attsInTable.map((att, i) =>
                       <td key={i}>
                         {att.selector(r)}
                       </td>

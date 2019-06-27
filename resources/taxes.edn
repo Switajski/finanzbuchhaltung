@@ -1,11 +1,10 @@
-[
- {:name "Kundenskonto" :key "MwSt 19%" :tax 0.19}
- {:name "Kundenskonto" :key "MwSt 7%" :tax 0.07}
- {:name "Lief.skonto" :key "VSt 19%" :tax 0.19}
- {:name "Lief.skonto" :key "VSt 7%" :tax 0.07}
- {:name "Umsatzsteuer" :key "USt 19%" :tax 0.19}
- {:name "Umsatzsteuer" :key "USt 7%" :tax 0.07}
- {:name "Kein Steuer" :key "*****" :tax 0.19}
- {:name "Vorsteuer" :key "19%" :tax 0.19}
- {:name "Vorsteuer" :key "7%" :tax 0.07}
- ]
+[{:name "Kundenskonto" :short "MwSt19%" :value 0.19}
+ {:name "Kundenskonto" :short "MwSt7%" :value 0.07}
+ {:name "Lief.skonto" :short "VSt19%" :value 0.19}
+ {:name "Lief.skonto" :short "VSt7%" :value 0.07}
+ {:name "Keine Steuer" :short "VSt0%" :value 0.00}
+ {:name "Umsatzsteuer" :short "USt19%" :value 0.19}
+ {:name "Umsatzsteuer" :short "USt7%" :value 0.07}
+ {:name "Kein Steuer" :short "*****" :value 0}
+ {:name "Vorsteuer" :short "19%" :value 0.19}
+ {:name "Vorsteuer" :short "7%" :value 0.07}]
