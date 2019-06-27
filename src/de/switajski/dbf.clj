@@ -120,7 +120,7 @@
                                 (binding [*out* *err*]
                                   (print "bad value: type: " type
                                          "key: " kv " - ")
-                                  (println s))
+                                  ([println] s))
                                 0.0))]
                  (if (= fractional-length 0)
                    (int val)

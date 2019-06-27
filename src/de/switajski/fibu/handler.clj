@@ -4,6 +4,7 @@
             [ring.middleware.json :as middleware]
             [compojure.route :as route]
             [de.switajski.dbf :as dbf]
+            [de.switajski.writer :refer :all]
             [de.switajski.ednreader :as edn]
             [clojure.java.io :as io]
             [clojure.data.json :as json]
@@ -54,7 +55,13 @@
                                     :body   (stream! (str path "konten2.dbf"))})
            (GET "/taxes" [] {:status 200
                              :body   (edn/read (str path "taxes.edn"))})
-           (route/not-found "Not Found"))
+           (POST "/create-record" request
+             (let [body (:body request)
+                   result (add-record "/tmp/buchen_test.dbf" (into-array Object body))]
+               {:status 200
+                :body   result}))
+
+           (route/not-found " Not Found"))
 
 (def app
   (-> (handler/site app-routes)

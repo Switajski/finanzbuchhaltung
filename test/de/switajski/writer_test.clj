@@ -1,5 +1,6 @@
-(ns de.switajski.writer
-  (:require [clojure.test :refer :all]))
+(ns de.switajski.writer_test
+  (:require [clojure.test :refer :all]
+            [de.switajski.writer :refer :all]))
 
 (def sample-record [
                     "V"                                     ;1 art

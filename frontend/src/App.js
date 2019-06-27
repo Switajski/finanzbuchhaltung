@@ -178,7 +178,13 @@ function App() {
     }
   }
   const saveEditedRow = () => {
-    alert('to be implemented')
+    fetch('/create-record', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(editedRecord)
+    })
   }
   const currentFocusIndex = () => currentIndex(focusedElements[focusedElements.length - 1])
 
