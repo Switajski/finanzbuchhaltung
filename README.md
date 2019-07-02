@@ -1,6 +1,6 @@
 # Finanzbuchhaltung
 
-![logo](https://raw.githubusercontent.com/switajski/finanzbuchhaltung/master/logo-files/Original-400x400.png)
+![logo](https://raw.githubusercontent.com/switajski/finanzbuchhaltung/master/logo-files/Original-400x400px.png)
 
 Simple accounting web application using DBF files.
 
