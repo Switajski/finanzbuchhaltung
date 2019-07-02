@@ -3,7 +3,8 @@ import styled from 'styled-components'
 import { Grid, Cell } from 'styled-css-grid'
 import { Button as RootButton } from './UIComponents'
 
-const Button = styled(RootButton)`width:100%; font-size:1em;`
+const Button = styled(RootButton)`width:100%; 
+font-size:1em;`
 const SGrid = styled(Grid)`margin: 0 1px 0 1px;`
 
 export default function KeyboardControls(props) {

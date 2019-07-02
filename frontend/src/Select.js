@@ -54,14 +54,15 @@ function Select(props, ref) {
     return <label>{props.name}
         <Dropdown showDropdown={showDropdown}>
             <Ul>{proposedOptions
-                .map((o, i) => <Li
+                .map((o, i) => o.value ? <Li
                     onMouseEnter={() => setSelected(i)}
                     onMouseDown={() => props.setValue(o.value)}
                     key={o.value}
                     selected={i === selected}
                 >
                     {o.value} - {o.name}
-                </Li>)}
+                </Li>
+                    : <li>{o.text}</li>)}
             </Ul>
         </Dropdown>
         <InputWithValidation size={7} {...props}

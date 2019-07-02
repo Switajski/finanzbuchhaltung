@@ -69,7 +69,7 @@ function App() {
   const [focusedElements, setFocus] = useState([])
   const [taxes, setTaxes] = useState([])
 
-  const validations = validate(editedRecord, taxes.map(t => t.short), accountPlan.map(a => a.value))
+  const validations = validate(editedRecord, taxes.map(t => t.fasuch), accountPlan.map(a => a.value))
   const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
   const existsPosition = pos => accountingRecords
     .map(r => indexSelector(r))
@@ -184,9 +184,15 @@ function App() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(editedRecord)
+    }).then(r => {
+      if (r.status === 200) goSelectMode()
+      else setExceptions([...exceptions, 'something went wrong'])
     })
+      .catch(e => setExceptions([...exceptions, e]))
+
   }
   const currentFocusIndex = () => currentIndex(focusedElements[focusedElements.length - 1])
+  const isEditedRecordValid = Object.keys(validations).length === 0
 
   useKeys((e) => {
     if (e) {
@@ -295,7 +301,7 @@ function App() {
                 size={7}
                 ref={refs.tax}
                 validationsMsg={hasBeenSelected('tax') && validations.tax}
-                options={taxes.map(t => { return { value: t.short, name: t.name } })}
+                options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
                 onFocus={() => setFocus([...focusedElements, 'tax'])}
                 value={editedRecord.tax}
                 onChange={({ target }) => setEditedRecord({ ...editedRecord, tax: target.value })}
@@ -319,7 +325,12 @@ function App() {
               text='ESC: Abbrechen' />
             <KeyButton />
             <KeyButton />
-            <KeyButton />
+            <KeyButton
+              active={!isSelectMode && isEditedRecordValid}
+              command={() => isEditedRecordValid && saveEditedRow()}
+              key='F10'
+              text='F10: Speichern'
+            />
             <KeyButton
               active
               text={"Enter: " + enterTextOn(currentFocusIndex(), mode)}
