@@ -6,7 +6,7 @@
                  [compojure "1.6.1"]
                  [ring/ring-json "0.3.1"]
                  [ring/ring-defaults "0.3.2"]
-                 [com.github.albfernandez/javadbf "1.9.4"]
+                 [nl.knaw.dans.common/dans-dbf-lib "1.0.0-beta-10"]
                  [org.clojure/data.json "0.2.6"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler de.switajski.fibu.handler/app

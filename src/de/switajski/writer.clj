@@ -38,26 +38,27 @@
 (defn find-tax-rate [tax-key taxes]
   (:famwst (find-tax tax-key taxes)))
 
-(def date-format (java.text.SimpleDateFormat. "dd.MM.yy"))
-(defn parse-date [d] (.parse date-format d))
-
-(defn format-number [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
+(defn to-java-util-date [d] (.parse (java.text.SimpleDateFormat. "dd.MM.yy") d))
+(defn to-java-double [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 
 (defn do-order-values [record, ordered-keys]
   (map #((keyword %) record) ordered-keys))
-(defn to-dbf-writer-format [records]
+(defn to-list-of-values [records]
   (map #(vec (do-order-values % order-of-dbf-record-values)) records))
 
-(defn generate-accounting-records [f account-config taxes]
+(defn generate-accounting-records [f account-config taxes
+                                   & {:keys [date-parser number-parser]
+                                      :or   {date-parser   to-java-util-date
+                                             number-parser to-java-double}}]
   (let [d {:art      "V"
-           :dat      (parse-date (:date f))
-           :rech_nr  (format-number (:pos f))
+           :dat      (date-parser (:date f))
+           :rech_nr  (number-parser (:pos f))
            :btext    (:text f)
            :vmsteuer (:tax f)
-           :bdatum   (parse-date (:accountedDate f))
+           :bdatum   (date-parser (:accountedDate f))
            :klnummer ""
-           :faelig   (parse-date (:accountedDate f))
-           :zamek    false
+           :faelig   nil
+           :zamek    nil
            :bilg     ""}
         tax-account (:konto_nr (find-tax (:tax f) taxes))
         tax (- (:sum f)
@@ -70,23 +71,23 @@
                    :gegen (:creditAccount f)
                    :konto_art (find-kontoart (:debitAccount f) account-config)
                    :kklasse (find-kklasse (:debitAccount f) account-config)
-                   :betrag_h (format-number 0.00)
-                   :betrag_s (format-number (:sum f))
+                   :betrag_h (number-parser 0.00)
+                   :betrag_s (number-parser (:sum f))
                    )
         b (assoc d :datensatz "B"
                    :konto tax-account
                    :gegen (:debitAccount f)
                    :konto_art (find-kontoart tax-account account-config)
                    :kklasse (find-kklasse tax-account account-config)
-                   :betrag_h (format-number 0.00)
-                   :betrag_s (format-number tax)
+                   :betrag_h (number-parser 0.00)
+                   :betrag_s (number-parser tax)
                    )
         c (assoc d :datensatz "C"
                    :konto (:creditAccount f)
                    :gegen (:debitAccount f)
                    :konto_art (find-kontoart (:creditAccount f) account-config)
                    :kklasse (find-kklasse (:creditAccount f) account-config)
-                   :betrag_h (format-number (:sum f))
-                   :betrag_s (format-number 0.00))
+                   :betrag_h (number-parser (:sum f))
+                   :betrag_s (number-parser 0.00))
         ]
     [a b c]))

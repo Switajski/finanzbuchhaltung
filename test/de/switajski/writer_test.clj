@@ -5,29 +5,6 @@
 
 (def path "/Users/switajski/Projects/finanzbuchhaltung/resources/")
 
-(def sample-record [
-                    "V"                                     ;1 art
-                    (java.util.Date.)                       ;2 dat
-                    "0870"                                  ;3 konto
-                    "8000"                                  ;4 gegen
-                    "Buero"                                 ;5 btext
-                    (java.math.BigDecimal. 1)               ;6 rech_nr
-                    "A"                                     ;7 datensatz
-                    (java.math.BigDecimal. 0.0)             ;8 "betrag_h"
-                    (java.math.BigDecimal. 4.0)             ;9 "betrag_s"
-                    "VSt0%"                                 ;10 "vmsteuer"
-                    (java.util.Date.)                       ;11 "bdatum" : "2018-01-01",
-                    "S"                                     ;12 "konto_art"
-                    ""                                      ;13 "klnummer"
-                    (java.util.Date.)                       ;14 "faelig"
-                    "K"                                     ;15 "kklasse"
-                    false                                   ;16 "zamek"
-                    "B"                                     ;17 "bilg"
-                    ]
-  )
-
-
-
 (def json-record
   {:pos           "660"
    :date          "24.10.16"
@@ -46,44 +23,28 @@
               (edn/read (str path "taxes.edn")))]
     (println (first abc))
     (println (nth abc 1))
-    (println (nth abc 2))))
+    (println (nth abc 2))
+    ))
 
 (deftest transform-from-endpoint-to-dbf-writer-format
-  (let [abc (to-dbf-writer-format (generate-accounting-records
-                                    json-record
-                                    (edn/read (str path "account-config.edn"))
-                                    (edn/read (str path "taxes.edn"))))]
-    (println (first abc))
-    (println (vec (nth abc 1)))
-    (println (nth abc 2))))
+  (to-list-of-values (generate-accounting-records
+                       json-record
+                       (edn/read (str path "account-config.edn"))
+                       (edn/read (str path "taxes.edn")))))
 
-(def sample-record [
-                    "V"                                     ;1 art
-                    (java.util.Date.)                       ;2 dat
-                    "0870"                                  ;3 konto
-                    "8000"                                  ;4 gegen
-                    "Buero"                                 ;5 btext
-                    (java.math.BigDecimal. 1)               ;6 rech_nr
-                    "A"                                     ;7 datensatz
-                    (java.math.BigDecimal. 0.0)             ;8 "betrag_h"
-                    (java.math.BigDecimal. 4.0)             ;9 "betrag_s"
-                    "VSt0%"                                 ;10 "vmsteuer"
-                    (java.util.Date.)                       ;11 "bdatum" : "2018-01-01",
-                    "S"                                     ;12 "konto_art"
-                    ""                                      ;13 "klnummer"
-                    (java.util.Date.)                       ;14 "faelig"
-                    "K"                                     ;15 "kklasse"
-                    false                                   ;16 "zamek"
-                    "B"                                     ;17 "bilg"
-                    ]
-  )
+
+(defn add-record-with-dans [file record]
+  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. file))]
+    (try (.open table)
+         (.addRecord table record)
+         (finally (.close table)))))
 
 (deftest write-records
-  (doseq [record (to-dbf-writer-format
+  (doseq [record (to-list-of-values
                    (generate-accounting-records
                      json-record
                      (edn/read (str path "account-config.edn"))
                      (edn/read (str path "taxes.edn"))))]
-    (add-record-with-dans "/tmp/buchen11.dbf" (into-array Object record))))
+    (add-record-with-dans "/tmp/13.dbf" (into-array Object record))))
 
 (run-tests)
