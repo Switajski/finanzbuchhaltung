@@ -13,6 +13,7 @@
 
 (def BUFFER-SIZE 8192)
 (def path "/Users/switajski/Projects/finanzbuchhaltung/resources/")
+(def buchen-file (str path "buchen.dbf"))
 
 (defn to-json [r]
   {:pos           (:rech_nr r)
@@ -43,9 +44,10 @@
        (.write writer "]")
        (.flush writer))))
 
+
 (defroutes app-routes
            (GET "/accounting-records" [] {:status 200
-                                          :body   (stream! (str path "buchen.dbf")
+                                          :body   (stream! buchen-file
                                                            :reader dbf/read-accounting-records!
                                                            :transform to-json
                                                            )})
@@ -53,11 +55,16 @@
                                     :body   (stream! (str path "konten2.dbf"))})
            (GET "/taxes" [] {:status 200
                              :body   (edn/read (str path "taxes.edn"))}) ;TODO: fa08.dbf instead of config file
-           (POST "/create-record" request
-             (let [body (:body request)
-                   result (add-record "/tmp/buchen_test.dbf" (into-array Object body))]
-               {:status 200
-                :body   result}))
+           (POST "/create-record" json
+             (println (:body json))
+             (doseq [record (to-list-of-values
+                              (generate-accounting-records
+                                (:body json)
+                                (edn/read (str path "account-config.edn"))
+                                (edn/read (str path "taxes.edn"))))]
+               (add-record-with-dans buchen-file (into-array Object record)))
+             {:status 200
+              :body   json})
 
            (route/not-found " Not Found"))
 

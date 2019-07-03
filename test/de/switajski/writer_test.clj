@@ -6,7 +6,7 @@
 (def path "/Users/switajski/Projects/finanzbuchhaltung/resources/")
 
 (def json-record
-  {:pos           "660"
+  {:pos           "679"
    :date          "24.10.16"
    :debitAccount  "10206"
    :creditAccount "5000"
@@ -15,6 +15,16 @@
    :sum           6959.24
    :accountedDate "24.10.16"
    :text          "Re.Nr. 7516"})
+
+(def json-record-2
+  {:pos           "679"
+   :debitAccount  "0840"
+   :creditAccount "0840"
+   :date          "07.11.16"
+   :accountedDate "07.11.16"
+   :sum           0.00
+   :text          ""
+   :tax           "VSt7%"})
 
 (deftest transform-from-json
   (let [abc (generate-accounting-records
@@ -31,13 +41,6 @@
                        json-record
                        (edn/read (str path "account-config.edn"))
                        (edn/read (str path "taxes.edn")))))
-
-
-(defn add-record-with-dans [file record]
-  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. file))]
-    (try (.open table)
-         (.addRecord table record)
-         (finally (.close table)))))
 
 (deftest write-records
   (doseq [record (to-list-of-values

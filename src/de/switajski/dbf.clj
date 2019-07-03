@@ -20,7 +20,7 @@
   [& bytes]
   (-> bytes
       byte-array
-      (String. (java.nio.charset.Charset/forName "CP866"))
+      (String. (java.nio.charset.Charset/forName "IBM-437"))
       str/trim))
 
 (defn read-bytes!
