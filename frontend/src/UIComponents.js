@@ -1,6 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Grid, Cell } from 'styled-css-grid'
+import { Grid as OGrid, Cell } from 'styled-css-grid'
+
+export const Grid = styled(OGrid)`grid-gap:0;`
 
 export const Pill = styled.span`
 background-color: ${props => props.theme.variableBg};
@@ -55,8 +57,7 @@ margin-left: 10px;
     border:none;
 }`
 export const InputWithValidation = styled(Input)`
-${props => props.validationMsg && 'background-color:' + props.theme.emphasize + ';'}
-`
+${props => props.validationMsg && 'background-color:' + props.theme.emphasize + ';'}`
 
 Input.defaultProps = {
     theme: {

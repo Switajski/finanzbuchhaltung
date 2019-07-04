@@ -72,7 +72,12 @@ function Select(props, ref) {
                 props.onFocus && props.onFocus()
             }}
             onBlur={onBlur}
-            onKeyDown={upHandler}
+            onKeyDown={a => {
+                upHandler(a)
+                if (props.onKeyDown) {
+                    props.onKeyDown(a)
+                }
+            }}
         />
         {props.validationMsg && '\u26A0'}
     </label>

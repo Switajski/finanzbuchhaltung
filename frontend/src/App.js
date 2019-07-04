@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react'
 import { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import clipperTheme from './clipperTheme'
-import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover } from './UIComponents'
+import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover, Emphasize, Grid } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
 import DateInput from './DateInput'
 import Select from './Select'
 import KeyboardControls, { KeyButton } from './KeyboardControls'
-import { Grid, Cell } from 'styled-css-grid'
+import { Cell } from 'styled-css-grid'
 import useKeys from './useKeys'
 import './App.css';
 import { Exception } from 'handlebars';
@@ -68,8 +68,10 @@ function App() {
   const [editedRecord, setEditedRecord] = useState()
   const [focusedElements, setFocus] = useState([])
   const [taxes, setTaxes] = useState([])
+  const [debitBalance, setBalance] = useState()
+  const [creditBalance, setCreditBalance] = useState()
 
-  const validations = validate(editedRecord, taxes.map(t => t.fasuch), accountPlan.map(a => a.value))
+  const validations = validate(editedRecord, taxes.map(t => t.fasuch), Object.keys(accountPlan))
   const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
   const existsPosition = pos => accountingRecords
     .map(r => indexSelector(r))
@@ -115,8 +117,18 @@ function App() {
   const lastPos = (records = accountingRecords) => records
     .sort((a, b) => indexSelector(b) - indexSelector(a))
     .map(indexSelector)[0]
+  const fetchAccountPlan = () => fetch("/account-plan") //TODO: use redux with state machine
+    .then(r => r.json())
+    .then(r =>
+      setAccountPlan(
+        r.slice(1)
+          .reduce((a, account) => {
+            const key = account.konto_nr
+            a[(typeof key === 'number') ? key.toString() : key] = account.name_kont
+            return a
+          }, {})))
 
-  useEffect(() => {
+  const fetchAccountingRecords = () => {
     fetch("/accounting-records")
       .then(r => r.json())
       .then(r => {
@@ -140,20 +152,25 @@ function App() {
         newRecordTemplate.accountedDate = lastDate
       })
       .catch(exc => setExceptions([...exceptions, exc]))
+  }
 
-    fetch("/account-plan") //TODO: use redux with state machine
-      .then(r => r.json())
-      .then(r => {
-        setAccountPlan(
-          r.slice(1)
-            .map(r => {
-              return {
-                name: r.name_kont,
-                value: r.konto_nr
-              }
-            }))
-      })
+  const fetchCreditBalance = accountNo => {
+    fetch("/balance?accountNo=" + accountNo)
+      .then(r => r.json())//TODO: what if status != 200
+      .then(r => setCreditBalance(r.sum))
+      .catch(exc => setExceptions([...exceptions, exc]))
+  }
 
+  const fetchBalance = accountNo => {
+    fetch('/balance?accountNo="' + accountNo + '"')
+      .then(r => r.json())//TODO: what if status != 200
+      .then(r => setBalance(r.sum))
+      .catch(exc => setExceptions([...exceptions, exc]))
+  }
+
+  useEffect(() => {
+    fetchAccountingRecords()
+    fetchAccountPlan()
     fetch("/taxes")
       .then(r => r.json())
       .then(r => setTaxes(r))
@@ -162,14 +179,21 @@ function App() {
 
   const goSelectMode = () => {
     setEditedRecord(undefined)
+    setCreditBalance(undefined)
+    setBalance(undefined)
     setFocus([])
   }
   const goEditMode = pos => {
     setEditedPos(pos)
-    setEditedRecord(getRecord(pos))
+    const rec = getRecord(pos)
+    setEditedRecord(rec)
+    fetchBalance(rec.debitAccount) // TODO: debitAccount as separate value and create a callback to listen on that value
+    fetchCreditBalance(rec.creditAccount)
   }
   const goNewMode = (pos = lastPos() + 1) => {
     setEditedRecord({ ...newRecordTemplate, pos: pos })
+    setCreditBalance(undefined)
+    setBalance(undefined)
   }
   const select = editedPos => {
     if (isPositionValid(editedPos)) {
@@ -185,8 +209,10 @@ function App() {
       },
       body: JSON.stringify(editedRecord)
     }).then(r => {
-      if (r.status === 200) goSelectMode()
-      else setExceptions([...exceptions, 'something went wrong'])
+      if (r.status === 200) {
+        goSelectMode()
+        fetchAccountingRecords()
+      } else setExceptions([...exceptions, 'something went wrong'])
     })
       .catch(e => setExceptions([...exceptions, e]))
 
@@ -223,6 +249,7 @@ function App() {
     return !currentFocus
   }
   const isSelectMode = mode === modes.selectMode
+  const accountPlanOptions = Object.keys(accountPlan).map(key => { return { value: key, name: accountPlan[key] } })
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
@@ -258,35 +285,59 @@ function App() {
                   validationMsg={hasBeenSelected('accountedDate') && validations.accountedDate}
                   setValue={(v) => setEditedRecord(() => { return { ...editedRecord, accountedDate: v } })}
                   onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
-                /></label><br /></Cell></>
+                /></label><br />
+                </Cell></>
               }
             </Grid>
 
             {!isSelectMode && <>
               <br />
-              <Select
-                value={editedRecord.debitAccount}
-                name="Konto Soll&nbsp;&nbsp;"
-                ref={refs.debitAccount}
-                validationMsg={hasBeenSelected('debitAccount') && validations.debitAccount}
-                onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
-                options={accountPlan}
-                setValue={v => setEditedRecord({ ...editedRecord, debitAccount: v })
-                }//setValue for mouse input TODO
-                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, debitAccount: target.value }))} //onchange for textinput
-              />
-              <br />
+              <Grid columns={3}>
+                <Cell><Select
+                  value={editedRecord.debitAccount}
+                  name="Konto Soll&nbsp;&nbsp;"
+                  ref={refs.debitAccount}
+                  validationMsg={hasBeenSelected('debitAccount') && validations.debitAccount}
+                  onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
+                  options={accountPlanOptions}
+                  setValue={v => {
+                    setEditedRecord({ ...editedRecord, debitAccount: v })
+                    if (validations.debitAccount === undefined)
+                      fetchBalance(v)
+                  }
+                  }//setValue for mouse input TODO
+                  onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, debitAccount: target.value }))} //onchange for textinput
+                />
+                </Cell>
+                <Cell><Emphasize>
+                  {debitBalance !== undefined && accountPlan[editedRecord.debitAccount]}
+                </Emphasize></Cell>
+                <Cell><Emphasize>
+                  {debitBalance !== undefined && 'Saldo ' + debitBalance + ' S'}
+                </Emphasize></Cell>
+              </Grid>
+
               {/** TODO: setValue and onChange twice same function */}
-              <Select
-                value={editedRecord.creditAccount}
-                name="Konto Haben&nbsp;"
-                ref={refs.creditAccount}
-                validationMsg={hasBeenSelected('creditAccount') && validations.creditAccount}
-                onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
-                setValue={v => setEditedRecord({ ...editedRecord, creditAccount: v })}
-                options={accountPlan}
-                onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, creditAccount: target.value }))} />
-              <br />
+              <Grid columns={3}>
+                <Cell><Select
+                  value={editedRecord.creditAccount}
+                  name="Konto Haben&nbsp;"
+                  ref={refs.creditAccount}
+                  validationMsg={hasBeenSelected('creditAccount') && validations.creditAccount}
+                  onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
+                  setValue={v => {
+                    setEditedRecord({ ...editedRecord, creditAccount: v })
+                    validations.creditAccount === undefined && fetchCreditBalance(v)
+                  }}
+                  options={accountPlanOptions}
+                  onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, creditAccount: target.value }))} /></Cell>
+                <Cell><Emphasize>
+                  {creditBalance !== undefined && accountPlan[editedRecord.creditAccount]}
+                </Emphasize></Cell>
+                <Cell><Emphasize>
+                  {creditBalance !== undefined && 'Saldo ' + creditBalance + ' H'}
+                </Emphasize></Cell>
+              </Grid>
               <br />
 
               <label>Summe<CurrencyInput
@@ -336,8 +387,8 @@ function App() {
               text={"Enter: " + enterTextOn(currentFocusIndex(), mode)}
               command={() => {
                 if (existsPosition(editedPos))
-                  return goEditMode
-                else return goNewMode
+                  goEditMode(editedPos)
+                else return goNewMode(editedPos)
               }}
             />
           </KeyboardControls>

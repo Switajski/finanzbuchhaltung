@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
+            [ring.middleware.params :as params-middleware]
             [compojure.route :as route]
             [de.switajski.dbf :as dbf]
             [de.switajski.writer :refer :all]
@@ -9,11 +10,13 @@
             [clojure.java.io :as io]
             [clojure.data.json :as json]
             [ring.util.io :as ring-io])
-  (:import [java.io BufferedInputStream FileInputStream]))
+  (:import [java.io BufferedInputStream FileInputStream]
+           (java.math RoundingMode)))
 
 (def BUFFER-SIZE 8192)
 (def path "/Users/switajski/Projects/finanzbuchhaltung/resources/")
 (def buchen-file (str path "buchen.dbf"))
+(defn number-format [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 
 (defn to-json [r]
   {:pos           (:rech_nr r)
@@ -27,9 +30,8 @@
    :datensatz     (:datensatz r)})
 
 (defn stream!
-  [in-file & {:keys [conv transform reader]
-              :or   {conv      {}
-                     transform #(when true %)
+  [in-file & {:keys [transform reader]
+              :or   {transform #(when true %)
                      reader    dbf/read-records!}}]
   (ring-io/piped-input-stream
     #(let [writer (io/make-writer % {})
@@ -37,7 +39,7 @@
            dbf (BufferedInputStream. (FileInputStream. ^String in-file)
                                      BUFFER-SIZE)]
        (.write writer "[{}")
-       (doseq [rec (reader dbf dbf-meta conv)]
+       (doseq [rec (reader dbf dbf-meta {})]
          (when (not (:deleted rec))
            (.write writer ",")
            (json/write (transform rec) writer)))
@@ -45,18 +47,38 @@
        (.flush writer))))
 
 
+(defn records-of [in-file]
+  (let [dbf-meta (dbf/read-dbf-meta in-file)
+        dbf (BufferedInputStream. (FileInputStream. ^String in-file) BUFFER-SIZE)]
+    (dbf/read-records! dbf dbf-meta {})))
+
 (defroutes app-routes
-           (GET "/accounting-records" [] {:status 200
-                                          :body   (stream! buchen-file
-                                                           :reader dbf/read-accounting-records!
-                                                           :transform to-json
-                                                           )})
-           (GET "/account-plan" [] {:status 200
-                                    :body   (stream! (str path "konten2.dbf"))})
-           (GET "/taxes" [] {:status 200
-                             :body   (edn/read (str path "taxes.edn"))}) ;TODO: fa08.dbf instead of config file
+           (GET "/accounting-records" []
+             {:status 200
+              :body   (stream! buchen-file
+                               :reader dbf/read-accounting-records!
+                               :transform to-json)})
+           (GET "/accounting-records-without-stream" []
+             {:status 200
+              :body   (map #(first %)
+                           (partition-by :rech_nr (records-of buchen-file)))})
+           (GET "/balance" request
+             (let [accountNo (get-in request [:params :accountNo])]
+               {:status 200
+                :body   {:sum
+                         (number-format
+                           (reduce #(if (= accountNo (:konto %2))
+                                      (+ %1 (:betrag_h %2))
+                                      %1)
+                                   0
+                                   (records-of buchen-file)))}}))
+           (GET "/account-plan" []
+             {:status 200
+              :body   (stream! (str path "konten2.dbf"))})
+           (GET "/taxes" []
+             {:status 200
+              :body   (edn/read (str path "taxes.edn"))})   ;TODO: fa08.dbf instead of config file
            (POST "/create-record" json
-             (println (:body json))
              (doseq [record (to-list-of-values
                               (generate-accounting-records
                                 (:body json)
@@ -71,4 +93,5 @@
 (def app
   (-> (handler/site app-routes)
       (middleware/wrap-json-body {:keywords? true})
+      (params-middleware/wrap-params)
       middleware/wrap-json-response))
