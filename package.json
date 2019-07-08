@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-hook-thunk-reducer": "^0.1.1"
+  }
+}

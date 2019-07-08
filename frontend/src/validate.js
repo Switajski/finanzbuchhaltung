@@ -1,4 +1,6 @@
 const parseDate = str => {
+    if (str === undefined)
+        return
     const splitted = str.split('.')
     const d = new Date(`20${splitted[2]}-${splitted[1]}-${splitted[0]}`)
     if (!isNaN(d.getTime()))
@@ -15,9 +17,9 @@ const validate = (editedRecord, taxes, accountPlan) => {
             validations.date = INVALID_DATE_MSG
         if (parseDate(editedRecord.accountedDate) === undefined)
             validations.accountedDate = INVALID_DATE_MSG
-        if (accountPlan.indexOf(editedRecord.debitAccount) < 0)
+        if (accountPlan[editedRecord.debitAccount] === undefined)
             validations.debitAccount = INVALID_ACCOUNT_MSG
-        if (accountPlan.indexOf(editedRecord.creditAccount) < 0)
+        if (accountPlan[editedRecord.creditAccount] === undefined)
             validations.creditAccount = INVALID_ACCOUNT_MSG
         if (taxes.indexOf(editedRecord.tax) < 0)
             validations.tax = INVALID_TAX_MSG

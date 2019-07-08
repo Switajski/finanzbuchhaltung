@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import useThunkReducer from 'react-hook-thunk-reducer'
 import { ThemeProvider } from 'styled-components'
 import Header from './Header'
+import recordReducer from './recordReducer'
 import clipperTheme from './clipperTheme'
 import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover, Emphasize, Grid } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
@@ -10,10 +12,9 @@ import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Cell } from 'styled-css-grid'
 import useKeys from './useKeys'
 import './App.css';
-import { Exception } from 'handlebars';
-import validate from './validate'
+import { reset, selectPos, saveEditedRow, fetchAccountingRecords, fetchTaxes, fetchAccountPlan } from './actions'
 
-const indexSelector = r => parseInt(r.pos)
+export const indexSelector = r => parseInt(r.pos)
 
 const attsInTable = [
   { name: "Pos.", selector: r => r.pos },
@@ -23,16 +24,6 @@ const attsInTable = [
   { name: "Summe", selector: r => r.sum },
   { name: "Text", selector: r => r.text }
 ]
-const newRecordTemplate = {
-  pos: undefined,
-  debitAccount: '',
-  creditAccount: '',
-  date: '',
-  accountedDate: '',
-  sum: '0.00',
-  text: '',
-  tax: ''
-}
 
 const modeTextInStatusHeader = {
   editMode: 'korrigiere',
@@ -47,41 +38,41 @@ const modes = {
 
 const onNumber = (v, callback) => !isNaN(v) && callback()
 
-const convertDate = date => {
-  const a = date.split('-')
-  const year = a[0].split('')
-  return a[2] + '.' + a[1] + '.' + year[2] + year[3]
-}
-
 const enterTextOn = (i, mode = modes.selectMode) => {
   if (i === 0) return 'Waehle Pos. Nr. aus'
   else if (i === 7) return mode === modes.editMode ? 'korrigiere' : 'buche'
   else return 'naechstes Eingabefeld'
 }
 
-
 function App() {
-  const [accountingRecords, setAccountingRecords] = useState([])
-  const [accountPlan, setAccountPlan] = useState([])
-  const [exceptions, setExceptions] = useState([])
-  const [editedPos, setEditedPos] = useState()
-  const [editedRecord, setEditedRecord] = useState()
   const [focusedElements, setFocus] = useState([])
-  const [taxes, setTaxes] = useState([])
-  const [debitBalance, setBalance] = useState()
-  const [creditBalance, setCreditBalance] = useState()
 
-  const validations = validate(editedRecord, taxes.map(t => t.fasuch), Object.keys(accountPlan))
-  const getRecord = pos => accountingRecords.find(e => pos === indexSelector(e))
-  const existsPosition = pos => accountingRecords
-    .map(r => indexSelector(r))
-    .includes(pos)
-  const isPositionValid = pos => existsPosition(pos) || pos === lastPos() + 1
+  const [state, dispatch] = useThunkReducer(recordReducer, { exceptions: [] })
+
+  const {
+    editedPos,
+    editedRecord,
+    validations,
+    accountingRecords,
+    accountPlan,
+    taxes,
+    debitBalance,
+    creditBalance,
+    exceptions
+  } = state
+
+  const indexedPositions = useMemo(
+    () => (accountingRecords || []).map(r => indexSelector(r)),
+    [accountingRecords])
+
   const whichMode = () => {
-    if (accountingRecords.length === 0 || editedRecord === undefined) {
+    if (accountingRecords === undefined
+      || accountingRecords.length === 0
+      || editedRecord === undefined) {
       return modes.selectMode
     }
-    return existsPosition(editedRecord.pos) ? modes.editMode : modes.newMode
+    const existsPosition = indexedPositions.includes(editedRecord.pos)
+    return existsPosition ? modes.editMode : modes.newMode
   }
   const mode = whichMode()
 
@@ -95,12 +86,13 @@ function App() {
     tax: useRef(null),
     text: useRef(null),
   }
+
   const refsOrder = Object.keys(refs)
   const currentIndex = key => refsOrder.findIndex(v => key === v)
   function nextRef(key) {
     const i = currentIndex(key)
     if (i === undefined)
-      throw Exception("Could not find ref of " + key)
+      throw new Error("Could not find ref of " + key)
     if (i < refsOrder.length) {
       return refs[refsOrder[i + 1]]
     }
@@ -114,130 +106,33 @@ function App() {
     }
   }, [mode, refs.date, refs.pos])
 
-  const lastPos = (records = accountingRecords) => records
-    .sort((a, b) => indexSelector(b) - indexSelector(a))
-    .map(indexSelector)[0]
-  const fetchAccountPlan = () => fetch("/account-plan") //TODO: use redux with state machine
-    .then(r => r.json())
-    .then(r =>
-      setAccountPlan(
-        r.slice(1)
-          .reduce((a, account) => {
-            const key = account.konto_nr
-            a[(typeof key === 'number') ? key.toString() : key] = account.name_kont
-            return a
-          }, {})))
-
-  const fetchAccountingRecords = () => {
-    fetch("/accounting-records")
-      .then(r => r.json())
-      .then(r => {
-        const records = r
-          .slice(1)
-          .sort((a, b) => indexSelector(b) - indexSelector(a))
-          .map(a => {
-            return {
-              ...a,
-              date: convertDate(a.date),
-              accountedDate: convertDate(a.date)
-            }
-          })
-        setAccountingRecords(records)
-
-        const lastPos = indexSelector(records[0])
-        setEditedPos(lastPos + 1)
-
-        const lastDate = records[0].date.slice(0)
-        newRecordTemplate.date = lastDate
-        newRecordTemplate.accountedDate = lastDate
-      })
-      .catch(exc => setExceptions([...exceptions, exc]))
-  }
-
-  const fetchCreditBalance = accountNo => {
-    fetch("/balance?accountNo=" + accountNo)
-      .then(r => r.json())//TODO: what if status != 200
-      .then(r => setCreditBalance(r.sum))
-      .catch(exc => setExceptions([...exceptions, exc]))
-  }
-
-  const fetchBalance = accountNo => {
-    fetch('/balance?accountNo="' + accountNo + '"')
-      .then(r => r.json())//TODO: what if status != 200
-      .then(r => setBalance(r.sum))
-      .catch(exc => setExceptions([...exceptions, exc]))
-  }
-
   useEffect(() => {
-    fetchAccountingRecords()
-    fetchAccountPlan()
-    fetch("/taxes")
-      .then(r => r.json())
-      .then(r => setTaxes(r))
-      .catch(exc => setExceptions([exc]))
+    dispatch({ type: 'FETCH_INITIAL' })
+    dispatch(fetchAccountingRecords())
+    dispatch(fetchTaxes())
+    dispatch(fetchAccountPlan())
   }, [])
 
-  const goSelectMode = () => {
-    setEditedRecord(undefined)
-    setCreditBalance(undefined)
-    setBalance(undefined)
-    setFocus([])
-  }
-  const goEditMode = pos => {
-    setEditedPos(pos)
-    const rec = getRecord(pos)
-    setEditedRecord(rec)
-    fetchBalance(rec.debitAccount) // TODO: debitAccount as separate value and create a callback to listen on that value
-    fetchCreditBalance(rec.creditAccount)
-  }
-  const goNewMode = (pos = lastPos() + 1) => {
-    setEditedRecord({ ...newRecordTemplate, pos: pos })
-    setCreditBalance(undefined)
-    setBalance(undefined)
-  }
-  const select = editedPos => {
-    if (isPositionValid(editedPos)) {
-      existsPosition(editedPos) ? goEditMode(editedPos)
-        : goNewMode(editedPos)
-    }
-  }
-  const saveEditedRow = () => {
-    fetch('/create-record', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(editedRecord)
-    }).then(r => {
-      if (r.status === 200) {
-        goSelectMode()
-        fetchAccountingRecords()
-      } else setExceptions([...exceptions, 'something went wrong'])
-    })
-      .catch(e => setExceptions([...exceptions, e]))
-
-  }
   const currentFocusIndex = () => currentIndex(focusedElements[focusedElements.length - 1])
-  const isEditedRecordValid = Object.keys(validations).length === 0
-
+  const isEditedRecordValid = validations && Object.keys(validations).length === 0
   useKeys((e) => {
     if (e) {
       if (e.key === 'Enter') {
         if (mode === modes.selectMode) {
-          select(editedPos)
+          dispatch(selectPos(editedPos))
         } else {
           const focusedRef = focusedElements[focusedElements.length - 1]
           if (nextRef(focusedRef)) {
             const validationMsgOfCurrentInput = validations[focusedElements[focusedElements.length - 1]]
             validationMsgOfCurrentInput === undefined && nextRef(focusedRef).current.focus()
           } else
-            saveEditedRow()
+            dispatch(saveEditedRow())
         }
 
       } else if (e.key === 'Escape')
-        goSelectMode()
+        dispatch(reset())
     }
-  }, [focusedElements, validations])
+  }, [accountingRecords, editedPos, mode, focusedElements, validations])
 
   const hasBeenSelected = att => {
     const focusedIndex = focusedElements.indexOf(att)
@@ -249,7 +144,8 @@ function App() {
     return !currentFocus
   }
   const isSelectMode = mode === modes.selectMode
-  const accountPlanOptions = Object.keys(accountPlan).map(key => { return { value: key, name: accountPlan[key] } })
+  const accountPlanOptions = Object.keys(accountPlan || [])
+    .map(key => { return { value: key, name: accountPlan[key] } })
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
@@ -265,7 +161,7 @@ function App() {
                 ref={refs.pos}
                 readOnly={mode !== modes.selectMode}
                 value={editedPos}
-                onChange={e => setEditedPos(parseInt(e.target.value))}
+                onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
                 onFocus={() => setFocus([...focusedElements, 'pos'])}
               /></label></Cell>
 
@@ -274,7 +170,7 @@ function App() {
                 value={editedRecord.date}
                 ref={refs.date}
                 validationMsg={hasBeenSelected('date') && validations.date}
-                setValue={(v) => setEditedRecord(() => { return { ...editedRecord, date: v } })}
+                setValue={(v) => dispatch({ type: 'SET_DATE', value: v })}
                 onFocus={() => setFocus([...focusedElements, 'date'])}
               /></label></Cell>
 
@@ -283,7 +179,7 @@ function App() {
                   value={editedRecord.accountedDate}
                   ref={refs.accountedDate}
                   validationMsg={hasBeenSelected('accountedDate') && validations.accountedDate}
-                  setValue={(v) => setEditedRecord(() => { return { ...editedRecord, accountedDate: v } })}
+                  setValue={v => dispatch({ type: 'SET_ACCOUNTED_DATE', value: v })}
                   onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
                 /></label><br />
                 </Cell></>
@@ -301,12 +197,10 @@ function App() {
                   onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
                   options={accountPlanOptions}
                   setValue={v => {
-                    setEditedRecord({ ...editedRecord, debitAccount: v })
-                    if (validations.debitAccount === undefined)
-                      fetchBalance(v)
+                    dispatch({ type: 'SET_DEBIT_ACCOUNT', value: v })
                   }
                   }//setValue for mouse input TODO
-                  onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, debitAccount: target.value }))} //onchange for textinput
+                  onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_DEBIT_ACCOUNT', value: target.value }))} //onchange for textinput
                 />
                 </Cell>
                 <Cell><Emphasize>
@@ -326,11 +220,10 @@ function App() {
                   validationMsg={hasBeenSelected('creditAccount') && validations.creditAccount}
                   onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
                   setValue={v => {
-                    setEditedRecord({ ...editedRecord, creditAccount: v })
-                    validations.creditAccount === undefined && fetchCreditBalance(v)
+                    dispatch({ type: 'SET_CREDIT_ACCOUNT', value: v })
                   }}
                   options={accountPlanOptions}
-                  onChange={({ target }) => onNumber(target.value, () => setEditedRecord({ ...editedRecord, creditAccount: target.value }))} /></Cell>
+                  onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_CREDIT_ACCOUNT', value: target.value }))} /></Cell>
                 <Cell><Emphasize>
                   {creditBalance !== undefined && accountPlan[editedRecord.creditAccount]}
                 </Emphasize></Cell>
@@ -345,7 +238,7 @@ function App() {
                 ref={refs.sum}
                 onFocus={() => setFocus([...focusedElements, 'sum'])}
                 validationMsg={validations.sum}
-                setValue={value => setEditedRecord({ ...editedRecord, sum: value })}
+                setValue={v => dispatch({ type: 'SET_SUM', value: v })}
               /></label>
 
               &nbsp; &nbsp;<label>Steuerschl.<Select
@@ -355,15 +248,15 @@ function App() {
                 options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
                 onFocus={() => setFocus([...focusedElements, 'tax'])}
                 value={editedRecord.tax}
-                onChange={({ target }) => setEditedRecord({ ...editedRecord, tax: target.value })}
-                setValue={v => setEditedRecord({ ...editedRecord, tax: v })}
+                onChange={({ target }) => dispatch({ type: 'SET_TAX', value: target.value })}
+                setValue={v => dispatch({ type: 'SET_TAX', value: v })}
               /></label><br />
 
               <label>Text&nbsp;<Input
                 size={30}
                 ref={refs.text}
                 onFocus={() => setFocus([...focusedElements, 'text'])}
-                onChange={(e) => setEditedRecord({ ...editedRecord, text: e.target.value })}
+                onChange={({ target }) => dispatch({ type: 'SET_TEXT', value: target.value })}
                 value={editedRecord.text}
               /></label>
             </>}
@@ -371,25 +264,21 @@ function App() {
           <KeyboardControls>
             <KeyButton
               active={!isSelectMode}
-              command={() => goSelectMode()}
+              command={() => reset()}
               key='ESC'
               text='ESC: Abbrechen' />
             <KeyButton />
             <KeyButton />
             <KeyButton
               active={!isSelectMode && isEditedRecordValid}
-              command={() => isEditedRecordValid && saveEditedRow()}
+              command={() => isEditedRecordValid && dispatch(saveEditedRow())}
               key='F10'
               text='F10: Speichern'
             />
             <KeyButton
               active
               text={"Enter: " + enterTextOn(currentFocusIndex(), mode)}
-              command={() => {
-                if (existsPosition(editedPos))
-                  goEditMode(editedPos)
-                else return goNewMode(editedPos)
-              }}
+              command={() => dispatch(selectPos(editedPos))}
             />
           </KeyboardControls>
           <Hr />
@@ -399,8 +288,8 @@ function App() {
                 <tr>{attsInTable.map(att => <Th key={att.name}>{att.name}</Th>)}</tr>
               </Thead>
               <tbody>
-                {accountingRecords.map(r =>
-                  <TrWithHover onClick={() => goEditMode(indexSelector(r))}
+                {(accountingRecords || []).map(r =>
+                  <TrWithHover onClick={() => dispatch(selectPos(indexSelector(r)))}
                     key={indexSelector(r)}>
                     {attsInTable.map((att, i) =>
                       <td key={i}>
