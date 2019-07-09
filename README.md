@@ -27,6 +27,7 @@ To start a web server for the application, run:
 To start the frontend, run:
 
     cd frontend
+    yarn install
     yarn start
 
 ## License
