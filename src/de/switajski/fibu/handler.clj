@@ -7,14 +7,14 @@
             [de.switajski.dbf :as dbf]
             [de.switajski.writer :refer :all]
             [de.switajski.ednreader :as edn]
-            [clojure.java.io :as io]
+            [clojure.java.io :as jio]
             [clojure.data.json :as json]
             [ring.util.io :as ring-io])
   (:import [java.io BufferedInputStream FileInputStream]
            (java.math RoundingMode)))
 
 (def BUFFER-SIZE 8192)
-(def path "/Users/switajski/Projects/finanzbuchhaltung/resources/")
+(def path "")
 (def buchen-file (str path "buchen.dbf"))
 (defn number-format [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 
@@ -34,10 +34,9 @@
               :or   {transform #(when true %)
                      reader    dbf/read-records!}}]
   (ring-io/piped-input-stream
-    #(let [writer (io/make-writer % {})
+    #(let [writer (jio/make-writer % {})
            dbf-meta (dbf/read-dbf-meta in-file)
-           dbf (BufferedInputStream. (FileInputStream. ^String in-file)
-                                     BUFFER-SIZE)]
+           dbf (jio/input-stream (jio/resource in-file) :buffer-size BUFFER-SIZE)]
        (.write writer "[{}")
        (doseq [rec (reader dbf dbf-meta {})]
          (when (not (:deleted rec))
@@ -49,7 +48,7 @@
 
 (defn records-of [in-file]
   (let [dbf-meta (dbf/read-dbf-meta in-file)
-        dbf (BufferedInputStream. (FileInputStream. ^String in-file) BUFFER-SIZE)]
+        dbf (jio/input-stream (jio/resource in-file) :buffer-size BUFFER-SIZE)]
     (dbf/read-records! dbf dbf-meta {})))
 
 (defroutes app-routes
@@ -89,9 +88,25 @@
               :body   json})
 
            (route/not-found " Not Found"))
+		   
+(defn wrap-runtime-exception-handling [handler]
+  (fn [request]
+    (try
+	  (handler request)
+	  (catch Exception e
+	    (.printStackTrace e)  ;; TODO: replace this with logging exception
+	    {:status 500 
+		 ;; https://tools.ietf.org/html/rfc7807
+		 :headers {"Content-Type" "application/problem+json"} 
+		 :body (str "{"
+		            "\"type\":\"de.switajski.fibu/server-error\","
+		            "\"title\":\"Sorry something went wrong :(\","
+		            "\"status\":500"
+					"}")}))))
 
 (def app
-  (-> (handler/site app-routes)
+  (-> (handler/api app-routes)
       (middleware/wrap-json-body {:keywords? true})
       (params-middleware/wrap-params)
-      middleware/wrap-json-response))
+	  middleware/wrap-json-response
+	  wrap-runtime-exception-handling))
