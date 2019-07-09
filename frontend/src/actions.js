@@ -1,4 +1,5 @@
 import { indexSelector } from './App'
+import MapWorkaround from './MapWorkaround';
 
 const convertDate = date => {
     const a = date.split('-')
@@ -22,7 +23,7 @@ export const fetchCreditBalance = accountNo =>
 
 export const selectPos = pos => {
     return (dispatch, getState) => {
-        const { accountingRecords, editedRecord } = getState()
+        const { accountingRecords } = getState()
         accountingRecords.sort((a, b) => indexSelector(b) - indexSelector(a))
         const newPos = indexSelector(accountingRecords[0]) + 1
         if (pos === newPos)
@@ -34,12 +35,20 @@ export const selectPos = pos => {
         else {
             const foundRecordWithPosition = accountingRecords.find(e => pos === indexSelector(e))
             if (foundRecordWithPosition) {
+                fetchBalance(foundRecordWithPosition.debitAccount)
+                    .then(balance => dispatch({
+                        type: "RECEIVE_DEBIT_BALANCE",
+                        value: balance
+                    }))
+                fetchBalance(foundRecordWithPosition.creditAccount)
+                    .then(balance => dispatch({
+                        type: "RECEIVE_CREDIT_BALANCE",
+                        value: balance
+                    }))
                 dispatch({
                     type: 'SET_OLD_RECORD',
                     pos: indexSelector(foundRecordWithPosition)
                 })
-                dispatch(fetchDebitBalance(foundRecordWithPosition.debitAccount))
-                dispatch(fetchCreditBalance(foundRecordWithPosition.creditAccount))
             }
         }
     }
@@ -72,10 +81,9 @@ export const fetchAccountPlan = () => {
                 type: 'RECEIVE_ACCOUNT_PLAN',
                 value: r.slice(1)
                     .reduce((a, account) => {
-                        const key = account.konto_nr
-                        a[(typeof key === 'number') ? key.toString() : key] = account.name_kont
+                        a.set(account.konto_nr, account.name_kont)
                         return a
-                    }, {})
+                    }, new MapWorkaround())
             }))
         .catch(e => dispatch(addException(stringifyException(e))))
 }

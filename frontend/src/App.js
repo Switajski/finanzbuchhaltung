@@ -44,10 +44,16 @@ const enterTextOn = (i, mode = modes.selectMode) => {
   else return 'naechstes Eingabefeld'
 }
 
+const initialState = {
+  exceptions: [],
+  editedPos: '0',
+  accountPlan: new Map()
+}
+
 function App() {
   const [focusedElements, setFocus] = useState([])
 
-  const [state, dispatch] = useThunkReducer(recordReducer, { exceptions: [] })
+  const [state, dispatch] = useThunkReducer(recordReducer, initialState)
 
   const {
     editedPos,
@@ -144,8 +150,15 @@ function App() {
     return !currentFocus
   }
   const isSelectMode = mode === modes.selectMode
-  const accountPlanOptions = Object.keys(accountPlan || [])
-    .map(key => { return { value: key, name: accountPlan[key] } })
+  const accountPlanOptions = useMemo(
+    () => Array.from(
+      (accountPlan || new Map()),
+      ([k, v]) => { return { value: k, name: v } }),
+    [accountPlan])
+  if (editedRecord) {
+    console.log('key: ' + typeof editedRecord.debitAccount + ' ' + editedRecord.debitAccount)
+    console.log('value: ' + accountPlan.get(editedRecord.debitAccount))
+  }
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
@@ -198,13 +211,12 @@ function App() {
                   options={accountPlanOptions}
                   setValue={v => {
                     dispatch({ type: 'SET_DEBIT_ACCOUNT', value: v })
-                  }
-                  }//setValue for mouse input TODO
+                  }}//setValue for mouse input TODO
                   onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_DEBIT_ACCOUNT', value: target.value }))} //onchange for textinput
                 />
                 </Cell>
                 <Cell><Emphasize>
-                  {debitBalance !== undefined && accountPlan[editedRecord.debitAccount]}
+                  {debitBalance !== undefined && accountPlan.get(editedRecord.debitAccount)}
                 </Emphasize></Cell>
                 <Cell><Emphasize>
                   {debitBalance !== undefined && 'Saldo ' + debitBalance + ' S'}
@@ -225,7 +237,7 @@ function App() {
                   options={accountPlanOptions}
                   onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_CREDIT_ACCOUNT', value: target.value }))} /></Cell>
                 <Cell><Emphasize>
-                  {creditBalance !== undefined && accountPlan[editedRecord.creditAccount]}
+                  {creditBalance !== undefined && accountPlan.get(editedRecord.creditAccount)}
                 </Emphasize></Cell>
                 <Cell><Emphasize>
                   {creditBalance !== undefined && 'Saldo ' + creditBalance + ' H'}

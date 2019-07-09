@@ -4,7 +4,7 @@ const validate2 = (editedRecord, taxes, accountPlan) => {
     return validate(
         editedRecord,
         taxes.map(t => t.fasuch),
-        Object.keys(accountPlan))
+        Object.keys(accountPlan).map(v => isNaN(v) ? v : new String(v)))
 }
 const resetState = state => {
     return {
@@ -31,6 +31,8 @@ const getRecord = (pos, accountingRecords) =>
     accountingRecords.find(e => pos === indexSelector(e))
 
 function recordReducer(state, action) {
+    console.log(state)
+    console.log(action)
     switch (action.type) {
         case 'FETCH_INITIAL': {
             return {
@@ -90,7 +92,7 @@ function recordReducer(state, action) {
                     ...resettedRecordState,
                     editedPos: editRecord.pos,
                     editedRecord: editRecord,
-                    validations: validate(editRecord, state.taxes, state.accountPlan)
+                    validations: validate2(editRecord, state.taxes, state.accountPlan)
                 }
             }
 
