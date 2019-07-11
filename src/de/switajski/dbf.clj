@@ -1,5 +1,6 @@
 (ns de.switajski.dbf
-  (:require [clojure.string :as str])
+  (:require [clojure.string :as str]
+            [clojure.java.io :as jio])
   (:import [java.io BufferedInputStream FileInputStream])
   (:gen-class))
 
@@ -40,8 +41,7 @@
 
   Take a file name string and returns a map"
   [file]
-  (with-open [db (BufferedInputStream.
-                   (FileInputStream. ^String file) BUFFER-SIZE)]
+  (with-open [db (jio/input-stream (jio/resource file) :buffer-size BUFFER-SIZE)]
     {:db-version    (.read ^BufferedInputStream db)
      :last-modified {:year  (.read ^BufferedInputStream db)
                      :month (.read ^BufferedInputStream db)
@@ -58,8 +58,7 @@
   ([file]
    (read-records-meta file (:first-offset (read-db-meta file))))
   ([file first-offset]
-   (with-open [db (BufferedInputStream.
-                    (FileInputStream. ^String file) BUFFER-SIZE)]
+   (with-open [db (jio/input-stream (jio/resource file) :buffer-size BUFFER-SIZE)]
      (.skip ^BufferedInputStream db 32)                     ;;skip main dbf meta - first 32b
      (doall
        (map #(dissoc % :dumb)
