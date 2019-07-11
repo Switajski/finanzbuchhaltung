@@ -1,5 +1,6 @@
 (ns de.switajski.writer
   (:import (java.math RoundingMode))
+  (:require [clojure.java.io :as jio])
   (:gen-class))
 
 (def order-of-dbf-record-values [:art
@@ -86,7 +87,7 @@
     [a b c]))
 
 (defn add-record-with-dans [file record]
-  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. file))]
+  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. (.toURI (jio/resource file))))]
     (try (.open table)
          (.addRecord table record)
          (finally (.close table)))))
