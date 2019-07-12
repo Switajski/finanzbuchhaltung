@@ -1,4 +1,5 @@
 import validate from './validate'
+import { SET_DEBIT_ACCOUNT, SET_CREDIT_ACCOUNT } from './actions'
 
 const validate2 = (editedRecord, taxes, accountPlan) => {
     return validate(
@@ -30,8 +31,8 @@ export const indexSelector = r => parseInt(r.pos)
 const getRecord = (pos, accountingRecords) =>
     accountingRecords.find(e => pos === indexSelector(e))
 
+
 function recordReducer(state, action) {
-    console.log(state)
     console.log(action)
     switch (action.type) {
         case 'FETCH_INITIAL': {
@@ -127,37 +128,23 @@ function recordReducer(state, action) {
                 ...resetState(state)
             }
 
-        case 'SET_DEBIT_ACCOUNT':
+        case SET_DEBIT_ACCOUNT:
             const newRecord = { ...state.editedRecord, debitAccount: action.value }
             const validations = validate2(
                 newRecord,
                 state.taxes,
                 state.accountPlan)
-            // if (validations.debitAccount === undefined)
-            //     return dispatch => {
-            //         return {
-            //             type: 'FETCH_DEBIT_BALANCE',
-            //             value: action.value
-            //         }
-            //     }
             return {
                 ...state,
                 editedRecord: newRecord,
                 validations
             }
-        case 'SET_CREDIT_ACCOUNT':
+        case SET_CREDIT_ACCOUNT:
             const newRecord2 = { ...state.editedRecord, creditAccount: action.value }
             const validations2 = validate2(
                 newRecord2,
                 state.taxes,
                 state.accountPlan)
-            // if (validations2.creditAccount === undefined)
-            //     return dispatch => {
-            //         return {
-            //             type: 'FETCH_CREDIT_BALANCE',
-            //             value: action.value
-            //         }
-            //     }
             return {
                 ...state,
                 editedRecord: newRecord2,

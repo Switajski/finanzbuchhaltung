@@ -1,25 +1,26 @@
 import { indexSelector } from './App'
-import MapWorkaround from './MapWorkaround';
 
 const convertDate = date => {
     const a = date.split('-')
     const year = a[0].split('')
     return a[2] + '.' + a[1] + '.' + year[2] + year[3]
 }
-const stringifyException = e => e.name + ': ' + e.message
+const stringifyException = (e, action) => e.name + ': ' + e.message + (action ? action : '')
 
 const fetchBalance = accountNo =>
     fetch('/balance?accountNo=' + accountNo)
         .then(r => r.json())//TODO: what if status != 200
         .then(r => r.sum)
 
+export const RECEIVE_DEBIT_BALANCE = "RECEIVE_DEBIT_BALANCE";
 export const fetchDebitBalance = accountNo =>
     dispatch => fetchBalance(accountNo)
-        .then(balance => dispatch({ type: "RECEIVE_DEBIT_BALANCE", value: balance }))
+        .then(balance => dispatch({ type: RECEIVE_DEBIT_BALANCE, value: balance }))
 
+export const RECEIVE_CREDIT_BALANCE = "RECEIVE_CREDIT_BALANCE";
 export const fetchCreditBalance = accountNo =>
     dispatch => fetchBalance(accountNo)
-        .then(balance => dispatch({ type: "RECEIVE_CREDIT_BALANCE", value: balance }))
+        .then(balance => dispatch({ type: RECEIVE_CREDIT_BALANCE, value: balance }))
 
 export const selectPos = pos => {
     return (dispatch, getState) => {
@@ -54,12 +55,13 @@ export const selectPos = pos => {
     }
 }
 
+const RECEIVE_ACCOUNTING_RECORDS = 'RECEIVE_ACCOUNTING_RECORDS'
 export const fetchAccountingRecords = () => {
     return dispatch => fetch("/accounting-records")
         .then(r => r.json())
         .then(r => {
             dispatch({
-                type: 'RECEIVE_ACCOUNTING_RECORDS',
+                type: RECEIVE_ACCOUNTING_RECORDS,
                 value: r.slice(1)
                     .sort((a, b) => indexSelector(b) - indexSelector(a))
                     .map(r => {
@@ -71,28 +73,61 @@ export const fetchAccountingRecords = () => {
                     })
             })
         })
-        .catch(e => dispatch(addException(stringifyException(e))))
+        .catch(e => dispatch(addException(stringifyException(e), RECEIVE_ACCOUNTING_RECORDS)))
 }
+export const RECEIVE_ACCOUNT_PLAN = 'RECEIVE_ACCOUNT_PLAN';
 export const fetchAccountPlan = () => {
     return dispatch => fetch("/account-plan") //TODO: use redux with state machine
         .then(r => r.json())
-        .then(r =>
+        .then(r => {
             dispatch({
-                type: 'RECEIVE_ACCOUNT_PLAN',
+                type: RECEIVE_ACCOUNT_PLAN,
                 value: r.slice(1)
                     .reduce((a, account) => {
                         a.set(account.konto_nr, account.name_kont)
                         return a
-                    }, new MapWorkaround())
-            }))
-        .catch(e => dispatch(addException(stringifyException(e))))
+                    }, new Map())
+            })
+        })
+        .catch(e => dispatch(addException(stringifyException(e), RECEIVE_ACCOUNT_PLAN)))
 }
 
+export const RECEIVE_TAXES = 'RECEIVE_TAXES';
 export const fetchTaxes = () => {
     return dispatch => fetch("/taxes")
         .then(r => r.json())
-        .then(r => dispatch({ type: 'RECEIVE_TAXES', value: r }))
+        .then(r => dispatch({ type: RECEIVE_TAXES, value: r }))
         .catch(e => dispatch(addException(stringifyException(e))))
+}
+
+export const SET_DEBIT_ACCOUNT = 'SET_DEBIT_ACCOUNT'
+export const setDebitAccount = newValue => {
+    return (dispatch, getState) => {
+        const { validations } = getState()
+        if (validations.debitAccount === undefined) {
+            dispatch({
+                type: SET_DEBIT_ACCOUNT,
+                value: newValue
+            })
+            dispatch(
+                fetchDebitBalance(newValue))
+        }
+    }
+}
+
+export const SET_CREDIT_ACCOUNT = 'SET_CREDIT_ACCOUNT'
+export const setCreditAccount = newValue => {
+    return (dispatch, getState) => {
+        const { validations } = getState()
+        if (validations.debitAccount === undefined) {
+            dispatch({
+                type: SET_CREDIT_ACCOUNT,
+                value: newValue
+            })
+            dispatch(
+                fetchCreditBalance(newValue))
+        }
+    }
 }
 
 export const reset = () => {

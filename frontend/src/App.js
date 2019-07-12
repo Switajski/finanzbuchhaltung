@@ -12,7 +12,7 @@ import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Cell } from 'styled-css-grid'
 import useKeys from './useKeys'
 import './App.css';
-import { reset, selectPos, saveEditedRow, fetchAccountingRecords, fetchTaxes, fetchAccountPlan } from './actions'
+import { reset, selectPos, saveEditedRow, fetchAccountingRecords, fetchTaxes, fetchAccountPlan, setDebitAccount, setCreditAccount } from './actions'
 
 export const indexSelector = r => parseInt(r.pos)
 
@@ -155,10 +155,6 @@ function App() {
       (accountPlan || new Map()),
       ([k, v]) => { return { value: k, name: v } }),
     [accountPlan])
-  if (editedRecord) {
-    console.log('key: ' + typeof editedRecord.debitAccount + ' ' + editedRecord.debitAccount)
-    console.log('value: ' + accountPlan.get(editedRecord.debitAccount))
-  }
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
@@ -209,9 +205,8 @@ function App() {
                   validationMsg={hasBeenSelected('debitAccount') && validations.debitAccount}
                   onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
                   options={accountPlanOptions}
-                  setValue={v => {
-                    dispatch({ type: 'SET_DEBIT_ACCOUNT', value: v })
-                  }}//setValue for mouse input TODO
+                  setValue={v => dispatch(setDebitAccount(v))
+                  }//setValue for mouse input TODO
                   onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_DEBIT_ACCOUNT', value: target.value }))} //onchange for textinput
                 />
                 </Cell>
@@ -231,9 +226,7 @@ function App() {
                   ref={refs.creditAccount}
                   validationMsg={hasBeenSelected('creditAccount') && validations.creditAccount}
                   onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
-                  setValue={v => {
-                    dispatch({ type: 'SET_CREDIT_ACCOUNT', value: v })
-                  }}
+                  setValue={v => dispatch(setCreditAccount(v))}
                   options={accountPlanOptions}
                   onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_CREDIT_ACCOUNT', value: target.value }))} /></Cell>
                 <Cell><Emphasize>
@@ -293,6 +286,7 @@ function App() {
               command={() => dispatch(selectPos(editedPos))}
             />
           </KeyboardControls>
+
           <Hr />
           <Scrollable>
             <Table>

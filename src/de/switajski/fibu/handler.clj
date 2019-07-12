@@ -14,8 +14,7 @@
            (java.math RoundingMode)))
 
 (def BUFFER-SIZE 8192)
-(def path "")
-(def buchen-file (str path "buchen.dbf"))
+(def buchen-file "buchen.dbf")
 (defn number-format [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 
 (defn to-json [r]
@@ -73,40 +72,41 @@
                                    (records-of buchen-file)))}}))
            (GET "/account-plan" []
              {:status 200
-              :body   (stream! (str path "konten2.dbf"))})
+              :body   (stream! "konten2.dbf")})
            (GET "/taxes" []
              {:status 200
-              :body   (edn/read (str path "taxes.edn"))})   ;TODO: fa08.dbf instead of config file
+              :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file
            (POST "/create-record" json
              (doseq [record (to-list-of-values
                               (generate-accounting-records
                                 (:body json)
-                                (edn/read (str path "account-config.edn"))
-                                (edn/read (str path "taxes.edn"))))]
+                                (edn/read "account-config.edn")
+                                (edn/read "taxes.edn")))]
                (add-record-with-dans buchen-file (into-array Object record)))
              {:status 200
               :body   json})
 
            (route/not-found " Not Found"))
-		   
+
 (defn wrap-runtime-exception-handling [handler]
   (fn [request]
     (try
-	  (handler request)
-	  (catch Exception e
-	    (.printStackTrace e)  ;; TODO: replace this with logging exception
-	    {:status 500 
-		 ;; https://tools.ietf.org/html/rfc7807
-		 :headers {"Content-Type" "application/problem+json"} 
-		 :body (str "{"
-		            "\"type\":\"de.switajski.fibu/server-error\","
-		            "\"title\":\"Sorry something went wrong :(\","
-		            "\"status\":500"
-					"}")}))))
+      (handler request)
+      (catch Exception e
+        (.printStackTrace e)                                ;; TODO: replace this with logging exception
+        {:status  500
+         ;; https://tools.ietf.org/html/rfc7807
+         :headers {"Content-Type" "application/problem+json"}
+         :body    (str "{"
+                       "\"type\":\"de.switajski.fibu/server-error\","
+                       "\"title\":\"Sorry something went wrong :(\","
+                       "\"status\":500"
+                       "}")}))))
 
 (def app
   (-> (handler/api app-routes)
       (middleware/wrap-json-body {:keywords? true})
       (params-middleware/wrap-params)
-	  middleware/wrap-json-response
-	  wrap-runtime-exception-handling))
+      middleware/wrap-json-response
+      wrap-runtime-exception-handling
+      ))
