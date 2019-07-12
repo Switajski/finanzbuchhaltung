@@ -94,9 +94,11 @@ function App() {
   }
 
   const refsOrder = Object.keys(refs)
+  console.log(refs)
   const currentIndex = key => refsOrder.findIndex(v => key === v)
   function nextRef(key) {
     const i = currentIndex(key)
+    console.log(i, key)
     if (i === undefined)
       throw new Error("Could not find ref of " + key)
     if (i < refsOrder.length) {
@@ -120,6 +122,7 @@ function App() {
           dispatch(selectPos(editedPos))
         } else {
           const focusedRef = focusedElements[focusedElements.length - 1]
+          console.log('nextRef: ', focusedElements)
           if (nextRef(focusedRef)) {
             const validationMsgOfCurrentInput = validations[focusedElements[focusedElements.length - 1]]
             validationMsgOfCurrentInput === undefined && nextRef(focusedRef).current.focus()
@@ -158,7 +161,7 @@ function App() {
           <Padding>
             <Grid columns={3}>
               <Cell><label>Position Nr.<Input
-                autoFocus
+                autoFocus={mode === modes.selectMode}
                 size={6}
                 ref={refs.pos}
                 readOnly={mode !== modes.selectMode}
@@ -168,20 +171,20 @@ function App() {
               /></label></Cell>
 
               {!isSelectMode && <><Cell><label>Datum<DateInput
-                size={8}
+                autoFocus={mode !== modes.selectMode}
                 value={editedRecord.date}
+                // TODO: default={lastDate}
                 ref={refs.date}
                 validationMsg={hasBeenSelected('date') && validations.date}
-                setValue={(v) => dispatch({ type: 'SET_DATE', value: v })}
+                onChange={({ target }) => dispatch({ type: 'SET_DATE', value: target.value })}
                 onFocus={() => setFocus([...focusedElements, 'date'])}
               /></label></Cell>
 
                 <Cell><label>Buchungsdatum<DateInput
-                  size={8}
                   value={editedRecord.accountedDate}
                   ref={refs.accountedDate}
                   validationMsg={hasBeenSelected('accountedDate') && validations.accountedDate}
-                  setValue={v => dispatch({ type: 'SET_ACCOUNTED_DATE', value: v })}
+                  onChange={({ target }) => dispatch({ type: 'SET_ACCOUNTED_DATE', value: target.value })}
                   onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
                 /></label><br />
                 </Cell></>
@@ -242,6 +245,7 @@ function App() {
               &nbsp; &nbsp;<label>Steuerschl.<Select
                 size={7}
                 ref={refs.tax}
+                name='tax'
                 validationsMsg={hasBeenSelected('tax') && validations.tax}
                 options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
                 onFocus={() => setFocus([...focusedElements, 'tax'])}

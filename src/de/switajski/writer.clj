@@ -32,7 +32,7 @@
 (defn find-tax-rate [tax-key taxes]
   (:famwst (find-tax tax-key taxes)))
 
-(defn to-java-util-date [d] (.parse (java.text.SimpleDateFormat. "dd.MM.yy") d))
+(defn to-java-util-date [d] (.parse (java.text.SimpleDateFormat. "yyyy-MM-dd") d))
 (defn to-java-double [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 
 (defn to-list-of-values [records]

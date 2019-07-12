@@ -64,13 +64,6 @@ export const fetchAccountingRecords = () => {
                 type: RECEIVE_ACCOUNTING_RECORDS,
                 value: r.slice(1)
                     .sort((a, b) => indexSelector(b) - indexSelector(a))
-                    .map(r => {
-                        return {
-                            ...r,
-                            accountedDate: convertDate(r.accountedDate),
-                            date: convertDate(r.date)
-                        }
-                    })
             })
         })
         .catch(e => dispatch(addException(stringifyException(e), RECEIVE_ACCOUNTING_RECORDS)))
