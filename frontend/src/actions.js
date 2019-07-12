@@ -1,10 +1,5 @@
 import { indexSelector } from './App'
 
-const convertDate = date => {
-    const a = date.split('-')
-    const year = a[0].split('')
-    return a[2] + '.' + a[1] + '.' + year[2] + year[3]
-}
 const stringifyException = (e, action) => e.name + ': ' + e.message + (action ? action : '')
 
 const fetchBalance = accountNo =>
@@ -96,12 +91,12 @@ export const fetchTaxes = () => {
 export const SET_DEBIT_ACCOUNT = 'SET_DEBIT_ACCOUNT'
 export const setDebitAccount = newValue => {
     return (dispatch, getState) => {
+        dispatch({
+            type: SET_DEBIT_ACCOUNT,
+            value: newValue
+        })
         const { validations } = getState()
         if (validations.debitAccount === undefined) {
-            dispatch({
-                type: SET_DEBIT_ACCOUNT,
-                value: newValue
-            })
             dispatch(
                 fetchDebitBalance(newValue))
         }
@@ -112,11 +107,11 @@ export const SET_CREDIT_ACCOUNT = 'SET_CREDIT_ACCOUNT'
 export const setCreditAccount = newValue => {
     return (dispatch, getState) => {
         const { validations } = getState()
+        dispatch({
+            type: SET_CREDIT_ACCOUNT,
+            value: newValue
+        })
         if (validations.debitAccount === undefined) {
-            dispatch({
-                type: SET_CREDIT_ACCOUNT,
-                value: newValue
-            })
             dispatch(
                 fetchCreditBalance(newValue))
         }

@@ -31,16 +31,14 @@ const modeTextInStatusHeader = {
   default: ''
 }
 const modes = {
-  selectMode: 'Waehle Pos. Nr. aus',
-  newMode: 'Buche',
-  editMode: 'Korrigiere',
+  SELECT: 'Waehle Pos. Nr. aus',
+  NEW: 'Buche',
+  EDIT: 'Korrigiere',
 }
 
-const onNumber = (v, callback) => !isNaN(v) && callback()
-
-const enterTextOn = (i, mode = modes.selectMode) => {
+const enterTextOn = (i, mode = modes.SELECT) => {
   if (i === 0) return 'Waehle Pos. Nr. aus'
-  else if (i === 7) return mode === modes.editMode ? 'korrigiere' : 'buche'
+  else if (i === 7) return mode === modes.EDIT ? 'korrigiere' : 'buche'
   else return 'naechstes Eingabefeld'
 }
 
@@ -51,7 +49,7 @@ const initialState = {
 }
 
 function App() {
-  const [focusedElements, setFocus] = useState([])
+  const [focusedInputs, setFocus] = useState([])
 
   const [state, dispatch] = useThunkReducer(recordReducer, initialState)
 
@@ -75,10 +73,10 @@ function App() {
     if (accountingRecords === undefined
       || accountingRecords.length === 0
       || editedRecord === undefined) {
-      return modes.selectMode
+      return modes.SELECT
     }
     const existsPosition = indexedPositions.includes(editedRecord.pos)
-    return existsPosition ? modes.editMode : modes.newMode
+    return existsPosition ? modes.EDIT : modes.NEW
   }
   const mode = whichMode()
 
@@ -93,17 +91,14 @@ function App() {
     text: useRef(null),
   }
 
-  const refsOrder = Object.keys(refs)
-  console.log(refs)
-  const currentIndex = key => refsOrder.findIndex(v => key === v)
-  function nextRef(key) {
+  const inputOrder = Object.keys(refs)
+  const nextInput = name => inputOrder[inputOrder.indexOf(name) + 1]
+  const currentIndex = name => inputOrder.indexOf(name)
+  function inputRefOf(key) {
     const i = currentIndex(key)
-    console.log(i, key)
     if (i === undefined)
       throw new Error("Could not find ref of " + key)
-    if (i < refsOrder.length) {
-      return refs[refsOrder[i + 1]]
-    }
+    return refs[key]
   }
 
   useEffect(() => {
@@ -113,38 +108,33 @@ function App() {
     dispatch(fetchAccountPlan())
   }, [])
 
-  const currentFocusIndex = () => currentIndex(focusedElements[focusedElements.length - 1])
+  const currentFocusIndex = () => currentIndex(focusedInputs[focusedInputs.length - 1])
   const isEditedRecordValid = validations && Object.keys(validations).length === 0
   useKeys((e) => {
     if (e) {
       if (e.key === 'Enter') {
-        if (mode === modes.selectMode) {
+        if (mode === modes.SELECT) {
           dispatch(selectPos(editedPos))
         } else {
-          const focusedRef = focusedElements[focusedElements.length - 1]
-          console.log('nextRef: ', focusedElements)
-          if (nextRef(focusedRef)) {
-            const validationMsgOfCurrentInput = validations[focusedElements[focusedElements.length - 1]]
-            validationMsgOfCurrentInput === undefined && nextRef(focusedRef).current.focus()
-          } else
+          const current = focusedInputs[focusedInputs.length - 1]
+          const next = nextInput(current)
+          if (inputRefOf(next)) {
+            console.log(focusedInputs, validations)
+            const validMsg = validations[current]
+            validMsg === undefined && inputRefOf(next).current.focus()
+          } else if (isEditedRecordValid) {
             dispatch(saveEditedRow())
+          }
         }
 
       } else if (e.key === 'Escape')
         dispatch(reset())
     }
-  }, [accountingRecords, editedPos, mode, focusedElements, validations])
+  }, [accountingRecords, editedPos, mode, focusedInputs, validations])
 
-  const hasBeenSelected = att => {
-    const focusedIndex = focusedElements.indexOf(att)
-    const focused = (focusedIndex > -1)
-    if (!focused)
-      return false
+  const hasBeenFocused = input => focusedInputs.slice(0, focusedInputs.length - 2).includes(input)
 
-    const currentFocus = (focusedIndex === focusedElements.length - 1)
-    return !currentFocus
-  }
-  const isSelectMode = mode === modes.selectMode
+  const isSelectMode = mode === modes.SELECT
   const accountPlanOptions = useMemo(
     () => Array.from(
       (accountPlan || new Map()),
@@ -161,31 +151,31 @@ function App() {
           <Padding>
             <Grid columns={3}>
               <Cell><label>Position Nr.<Input
-                autoFocus={mode === modes.selectMode}
+                autoFocus={mode === modes.SELECT}
                 size={6}
                 ref={refs.pos}
-                readOnly={mode !== modes.selectMode}
+                readOnly={mode !== modes.SELECT}
                 value={editedPos}
                 onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
-                onFocus={() => setFocus([...focusedElements, 'pos'])}
+                onFocus={() => setFocus(fs => [...fs, 'pos'])}
               /></label></Cell>
 
               {!isSelectMode && <><Cell><label>Datum<DateInput
-                autoFocus={mode !== modes.selectMode}
+                autoFocus={mode !== modes.SELECT}
                 value={editedRecord.date}
                 // TODO: default={lastDate}
                 ref={refs.date}
-                validationMsg={hasBeenSelected('date') && validations.date}
+                validationMsg={hasBeenFocused('date') && validations.date}
                 onChange={({ target }) => dispatch({ type: 'SET_DATE', value: target.value })}
-                onFocus={() => setFocus([...focusedElements, 'date'])}
+                onFocus={() => setFocus(fs => [...fs, 'date'])}
               /></label></Cell>
 
                 <Cell><label>Buchungsdatum<DateInput
                   value={editedRecord.accountedDate}
                   ref={refs.accountedDate}
-                  validationMsg={hasBeenSelected('accountedDate') && validations.accountedDate}
+                  validationMsg={hasBeenFocused('accountedDate') && validations.accountedDate}
                   onChange={({ target }) => dispatch({ type: 'SET_ACCOUNTED_DATE', value: target.value })}
-                  onFocus={() => setFocus([...focusedElements, 'accountedDate'])}
+                  onFocus={() => setFocus(fs => [fs, 'accountedDate'])}
                 /></label><br />
                 </Cell></>
               }
@@ -198,12 +188,11 @@ function App() {
                   value={editedRecord.debitAccount}
                   name="Konto Soll&nbsp;&nbsp;"
                   ref={refs.debitAccount}
-                  validationMsg={hasBeenSelected('debitAccount') && validations.debitAccount}
-                  onFocus={() => setFocus([...focusedElements, 'debitAccount'])}
+                  validationMsg={hasBeenFocused('debitAccount') && validations.debitAccount}
+                  onFocus={() => setFocus(fs => [...fs, 'debitAccount'])}
                   options={accountPlanOptions}
-                  setValue={v => dispatch(setDebitAccount(v))
-                  }//setValue for mouse input TODO
-                  onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_DEBIT_ACCOUNT', value: target.value }))} //onchange for textinput
+                  onChange={({ target }) => dispatch(setDebitAccount(target.value))
+                  } //onchange for textinput
                 />
                 </Cell>
                 <Cell><Emphasize>
@@ -214,17 +203,15 @@ function App() {
                 </Emphasize></Cell>
               </Grid>
 
-              {/** TODO: setValue and onChange twice same function */}
               <Grid columns={3}>
                 <Cell><Select
                   value={editedRecord.creditAccount}
                   name="Konto Haben&nbsp;"
                   ref={refs.creditAccount}
-                  validationMsg={hasBeenSelected('creditAccount') && validations.creditAccount}
-                  onFocus={() => setFocus([...focusedElements, 'creditAccount'])}
-                  setValue={v => dispatch(setCreditAccount(v))}
+                  validationMsg={hasBeenFocused('creditAccount') && validations.creditAccount}
+                  onFocus={() => setFocus(fs => [...fs, 'creditAccount'])}
                   options={accountPlanOptions}
-                  onChange={({ target }) => onNumber(target.value, () => dispatch({ type: 'SET_CREDIT_ACCOUNT', value: target.value }))} /></Cell>
+                  onChange={({ target }) => dispatch(setCreditAccount(target.value))} /></Cell>
                 <Cell><Emphasize>
                   {creditBalance !== undefined && accountPlan.get(editedRecord.creditAccount)}
                 </Emphasize></Cell>
@@ -237,27 +224,26 @@ function App() {
               <label>Summe<CurrencyInput
                 value={editedRecord.sum}
                 ref={refs.sum}
-                onFocus={() => setFocus([...focusedElements, 'sum'])}
+                onFocus={() => setFocus(fs => [...fs, 'sum'])}
                 validationMsg={validations.sum}
-                setValue={v => dispatch({ type: 'SET_SUM', value: v })}
+                onChange={({ target }) => dispatch({ type: 'SET_SUM', value: target.value })}
               /></label>
 
               &nbsp; &nbsp;<label>Steuerschl.<Select
                 size={7}
                 ref={refs.tax}
                 name='tax'
-                validationsMsg={hasBeenSelected('tax') && validations.tax}
+                validationsMsg={hasBeenFocused('tax') && validations.tax}
                 options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
-                onFocus={() => setFocus([...focusedElements, 'tax'])}
+                onFocus={() => setFocus(fs => [fs, 'tax'])}
                 value={editedRecord.tax}
                 onChange={({ target }) => dispatch({ type: 'SET_TAX', value: target.value })}
-                setValue={v => dispatch({ type: 'SET_TAX', value: v })}
               /></label><br />
 
               <label>Text&nbsp;<Input
                 size={30}
                 ref={refs.text}
-                onFocus={() => setFocus([...focusedElements, 'text'])}
+                onFocus={() => setFocus(fs => [...fs, 'text'])}
                 onChange={({ target }) => dispatch({ type: 'SET_TEXT', value: target.value })}
                 value={editedRecord.text}
               /></label>

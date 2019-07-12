@@ -2,18 +2,19 @@ const INVALID_DATE_MSG = 'Datum ex. nicht'
 const INVALID_ACCOUNT_MSG = 'Konto ex. nicht'
 const INVALID_TAX_MSG = 'Steuerschl. ex. nicht'
 
+const isDate = v => !isNaN(Date.parse(v))
 const validate = (editedRecord, taxes, accountPlan) => {
     const validations = {}
     if (editedRecord) {
-        if (editedRecord.date === undefined)
+        if (!isDate(editedRecord.date))
             validations.date = INVALID_DATE_MSG
-        if (editedRecord.accountedDate === undefined)
+        if (!isDate(editedRecord.accountedDate) === undefined)
             validations.accountedDate = INVALID_DATE_MSG
-        if (accountPlan.indexOf(editedRecord.debitAccount) > 0)
+        if (!accountPlan.has(editedRecord.debitAccount))
             validations.debitAccount = INVALID_ACCOUNT_MSG
-        if (accountPlan.indexOf(editedRecord.creditAccount) > 0)
+        if (!accountPlan.has(editedRecord.creditAccount))
             validations.creditAccount = INVALID_ACCOUNT_MSG
-        if (taxes.indexOf(editedRecord.tax) < 0)
+        if (!taxes.includes(editedRecord.tax))
             validations.tax = INVALID_TAX_MSG
     }
     return validations

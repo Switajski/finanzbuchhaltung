@@ -5,7 +5,7 @@ const validate2 = (editedRecord, taxes, accountPlan) => {
     return validate(
         editedRecord,
         taxes.map(t => t.fasuch),
-        Object.keys(accountPlan).map(v => isNaN(v) ? v : new String(v)))
+        accountPlan)
 }
 const resetState = state => {
     return {
@@ -111,14 +111,14 @@ function recordReducer(state, action) {
                     creditAccount: '',
                     date: action.initialDate || '',
                     accountedDate: action.initialDate || '',
-                    sum: '0.00',
+                    sum: 0,
                     text: '',
                     tax: ''
                 }
                 return {
                     ...resetState(state),
                     editedRecord: newRecord0,
-                    validations: validate2(state.editedRecord, state.taxes, state.accountPlan),
+                    validations: validate2(newRecord0, state.taxes, state.accountPlan),
                     balance: undefined,
                     creditBalance: undefined
                 }
