@@ -104,14 +104,6 @@ function App() {
     }
   }
 
-  useEffect(() => { // focus inputs on mode change
-    if (mode === modes.newMode || mode === modes.editMode) {
-      refs.date.current.focus()
-    } else {
-      refs.pos.current.focus()
-    }
-  }, [mode, refs.date, refs.pos])
-
   useEffect(() => {
     dispatch({ type: 'FETCH_INITIAL' })
     dispatch(fetchAccountingRecords())
@@ -166,6 +158,7 @@ function App() {
           <Padding>
             <Grid columns={3}>
               <Cell><label>Position Nr.<Input
+                autoFocus
                 size={6}
                 ref={refs.pos}
                 readOnly={mode !== modes.selectMode}
