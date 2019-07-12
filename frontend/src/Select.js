@@ -52,7 +52,7 @@ function Select(props, ref) {
     }
 
     return <label>{props.name}
-        <Dropdown showDropdown={showDropdown}>
+        {props.fallback && <Dropdown showDropdown={showDropdown}>
             <Ul>{proposedOptions
                 .map((o, i) => o.value ? <Li
                     onMouseEnter={() => setSelected(i)}
@@ -64,8 +64,9 @@ function Select(props, ref) {
                 </Li>
                     : <li>{o.text}</li>)}
             </Ul>
-        </Dropdown>
+        </Dropdown>}
         <InputWithValidation size={7} {...props}
+            list={props.name}
             ref={inputRef}
             onFocus={() => {
                 onFocus()
@@ -79,6 +80,9 @@ function Select(props, ref) {
                 }
             }}
         />
+        <datalist id={props.name}>
+            {props.options.map(o => <option key={o.value} value={o.value}>{o.name}</option>)}
+        </datalist>
         {props.validationMsg && '\u26A0'}
     </label>
 }
