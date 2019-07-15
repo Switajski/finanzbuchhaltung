@@ -13,8 +13,7 @@ const resetState = state => {
         editedRecord: undefined,
         validations: {},
         creditBalance: undefined,
-        balance: undefined,
-        focus: []
+        balance: undefined
     }
 }
 const validateAndMerge = (editedRecord, taxes, accountPlan) => {

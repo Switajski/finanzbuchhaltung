@@ -49,7 +49,9 @@ const initialState = {
 }
 
 function App() {
-  const [focusedInputs, setFocus] = useState([])
+
+  const focusedInputsRef = useRef([]) // weird workaround to have current state in useKeys effect hook: https://stackoverflow.com/questions/53633698/referencing-outdated-state-in-react-useeffect-hook
+  const [focusedInputs, setFocus] = useState(focusedInputsRef.current)
 
   const [state, dispatch] = useThunkReducer(recordReducer, initialState)
 
@@ -107,10 +109,14 @@ function App() {
     dispatch(fetchTaxes())
     dispatch(fetchAccountPlan())
   }, [])
+  console.log(focusedInputs, validations)
 
   const currentFocusIndex = () => currentIndex(focusedInputs[focusedInputs.length - 1])
-  const isEditedRecordValid = validations && Object.keys(validations).length === 0
+  const isEditedRecordValid = validations => validations && Object.keys(validations).length === 0
+  const editedRecordValid = isEditedRecordValid(validations)
   useKeys((e) => {
+    const focusedInputs = focusedInputsRef.current
+    console.log('updated focusedElements in enterHandler:', focusedInputs)
     if (e) {
       if (e.key === 'Enter') {
         if (mode === modes.SELECT) {
@@ -119,10 +125,9 @@ function App() {
           const current = focusedInputs[focusedInputs.length - 1]
           const next = nextInput(current)
           if (inputRefOf(next)) {
-            console.log(focusedInputs, validations)
             const validMsg = validations[current]
             validMsg === undefined && inputRefOf(next).current.focus()
-          } else if (isEditedRecordValid) {
+          } else if (isEditedRecordValid(validations)) {
             dispatch(saveEditedRow())
           }
         }
@@ -133,6 +138,13 @@ function App() {
   }, [accountingRecords, editedPos, mode, focusedInputs, validations])
 
   const hasBeenFocused = input => focusedInputs.slice(0, focusedInputs.length - 2).includes(input)
+
+  const createOnFocusFn = (att) => {
+    return () => {
+      focusedInputsRef.current = [...focusedInputs, att]
+      setFocus(focusedInputsRef.current)
+    }
+  }
 
   const isSelectMode = mode === modes.SELECT
   const accountPlanOptions = useMemo(
@@ -157,7 +169,7 @@ function App() {
                 readOnly={mode !== modes.SELECT}
                 value={editedPos}
                 onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
-                onFocus={() => setFocus(fs => [...fs, 'pos'])}
+                onFocus={createOnFocusFn('pos')}
               /></label></Cell>
 
               {!isSelectMode && <><Cell><label>Datum<DateInput
@@ -167,7 +179,7 @@ function App() {
                 ref={refs.date}
                 validationMsg={hasBeenFocused('date') && validations.date}
                 onChange={({ target }) => dispatch({ type: 'SET_DATE', value: target.value })}
-                onFocus={() => setFocus(fs => [...fs, 'date'])}
+                onFocus={createOnFocusFn('date')}
               /></label></Cell>
 
                 <Cell><label>Buchungsdatum<DateInput
@@ -175,7 +187,7 @@ function App() {
                   ref={refs.accountedDate}
                   validationMsg={hasBeenFocused('accountedDate') && validations.accountedDate}
                   onChange={({ target }) => dispatch({ type: 'SET_ACCOUNTED_DATE', value: target.value })}
-                  onFocus={() => setFocus(fs => [fs, 'accountedDate'])}
+                  onFocus={createOnFocusFn('accountedDate')}
                 /></label><br />
                 </Cell></>
               }
@@ -189,10 +201,9 @@ function App() {
                   name="Konto Soll&nbsp;&nbsp;"
                   ref={refs.debitAccount}
                   validationMsg={hasBeenFocused('debitAccount') && validations.debitAccount}
-                  onFocus={() => setFocus(fs => [...fs, 'debitAccount'])}
                   options={accountPlanOptions}
-                  onChange={({ target }) => dispatch(setDebitAccount(target.value))
-                  } //onchange for textinput
+                  onChange={({ target }) => dispatch(setDebitAccount(target.value))}
+                  onFocus={createOnFocusFn('debitAccount')}
                 />
                 </Cell>
                 <Cell><Emphasize>
@@ -209,7 +220,7 @@ function App() {
                   name="Konto Haben&nbsp;"
                   ref={refs.creditAccount}
                   validationMsg={hasBeenFocused('creditAccount') && validations.creditAccount}
-                  onFocus={() => setFocus(fs => [...fs, 'creditAccount'])}
+                  onFocus={createOnFocusFn('creditAccount')}
                   options={accountPlanOptions}
                   onChange={({ target }) => dispatch(setCreditAccount(target.value))} /></Cell>
                 <Cell><Emphasize>
@@ -224,9 +235,9 @@ function App() {
               <label>Summe<CurrencyInput
                 value={editedRecord.sum}
                 ref={refs.sum}
-                onFocus={() => setFocus(fs => [...fs, 'sum'])}
                 validationMsg={validations.sum}
                 onChange={({ target }) => dispatch({ type: 'SET_SUM', value: target.value })}
+                onFocus={createOnFocusFn('sum')}
               /></label>
 
               &nbsp; &nbsp;<label>Steuerschl.<Select
@@ -235,15 +246,15 @@ function App() {
                 name='tax'
                 validationsMsg={hasBeenFocused('tax') && validations.tax}
                 options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
-                onFocus={() => setFocus(fs => [fs, 'tax'])}
                 value={editedRecord.tax}
                 onChange={({ target }) => dispatch({ type: 'SET_TAX', value: target.value })}
+                onFocus={createOnFocusFn('tax')}
               /></label><br />
 
               <label>Text&nbsp;<Input
                 size={30}
                 ref={refs.text}
-                onFocus={() => setFocus(fs => [...fs, 'text'])}
+                onFocus={createOnFocusFn('text')}
                 onChange={({ target }) => dispatch({ type: 'SET_TEXT', value: target.value })}
                 value={editedRecord.text}
               /></label>
@@ -258,8 +269,8 @@ function App() {
             <KeyButton />
             <KeyButton />
             <KeyButton
-              active={!isSelectMode && isEditedRecordValid}
-              command={() => isEditedRecordValid && dispatch(saveEditedRow())}
+              active={!isSelectMode && editedRecordValid}
+              command={() => editedRecordValid && dispatch(saveEditedRow())}
               key='F10'
               text='F10: Speichern'
             />
