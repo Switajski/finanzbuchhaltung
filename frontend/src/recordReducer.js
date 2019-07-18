@@ -1,5 +1,5 @@
 import validate from './validate'
-import { SET_DEBIT_ACCOUNT, SET_CREDIT_ACCOUNT } from './actions'
+import { SET_DEBIT_ACCOUNT, SET_CREDIT_ACCOUNT, CANCEL_EDITED_RECORD } from './actions'
 
 const validate2 = (editedRecord, taxes, accountPlan) => {
     return validate(
@@ -63,6 +63,10 @@ function recordReducer(state, action) {
                 loading: false
             }
         }
+        case 'RECEIVE_SAVED_RECORD': {
+            return resetState(state)
+        }
+
         case 'RECEIVE_CREDIT_BALANCE': {
             return {
                 ...state,
@@ -122,7 +126,7 @@ function recordReducer(state, action) {
                     creditBalance: undefined
                 }
             }
-        case 'RESET':
+        case CANCEL_EDITED_RECORD:
             return {
                 ...resetState(state)
             }

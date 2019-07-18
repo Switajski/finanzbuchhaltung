@@ -118,9 +118,10 @@ export const setCreditAccount = newValue => {
     }
 }
 
-export const reset = () => {
+export const CANCEL_EDITED_RECORD = 'CANCEL_EDITED_RECORD'
+export const cancelEditedRecord = () => {
     return dispatch => {
-        return dispatch({ type: 'RESET' })
+        return dispatch({ type: CANCEL_EDITED_RECORD })
     }
 }
 
@@ -134,7 +135,7 @@ export const addException = e => {
     }
 }
 
-export const saveEditedRow = () => {
+export const saveEditedRow = (onSuccess) => {
     return (dispatch, getState) => {
         const { editedRecord } = getState()
         fetch('/create-record', {
@@ -145,8 +146,9 @@ export const saveEditedRow = () => {
             body: JSON.stringify(editedRecord)
         }).then(r => {
             if (r.status === 200) {
-                dispatch(reset())
                 dispatch(fetchAccountingRecords())
+                dispatch({ type: 'RECEIVE_SAVED_RECORD' })
+                onSuccess()
             } else dispatch(addException('Server response was not 200 (OK)'))
         }).catch(e => dispatch(addException(stringifyException(e))))
     }

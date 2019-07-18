@@ -12,7 +12,7 @@ import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Cell } from 'styled-css-grid'
 import useKeys from './useKeys'
 import './App.css';
-import { reset, selectPos, saveEditedRow, fetchAccountingRecords, fetchTaxes, fetchAccountPlan, setDebitAccount, setCreditAccount } from './actions'
+import { selectPos, saveEditedRow, fetchAccountingRecords, fetchTaxes, fetchAccountPlan, setDebitAccount, setCreditAccount, CANCEL_EDITED_RECORD } from './actions'
 
 export const indexSelector = r => parseInt(r.pos)
 
@@ -109,14 +109,12 @@ function App() {
     dispatch(fetchTaxes())
     dispatch(fetchAccountPlan())
   }, [])
-  console.log(focusedInputs, validations)
 
   const currentFocusIndex = () => currentIndex(focusedInputs[focusedInputs.length - 1])
   const isEditedRecordValid = validations => validations && Object.keys(validations).length === 0
   const editedRecordValid = isEditedRecordValid(validations)
   useKeys((e) => {
     const focusedInputs = focusedInputsRef.current
-    console.log('updated focusedElements in enterHandler:', focusedInputs)
     if (e) {
       if (e.key === 'Enter') {
         if (mode === modes.SELECT) {
@@ -133,7 +131,7 @@ function App() {
         }
 
       } else if (e.key === 'Escape')
-        dispatch(reset())
+        dispatch(cancel())
     }
   }, [accountingRecords, editedPos, mode, focusedInputs, validations])
 
@@ -145,6 +143,15 @@ function App() {
       setFocus(focusedInputsRef.current)
     }
   }
+  const resetFocus = () => {
+    setFocus([])
+  }
+  const cancel = () => {
+    resetFocus()
+    return { type: CANCEL_EDITED_RECORD }
+  }
+
+  console.log(focusedInputs)
 
   const isSelectMode = mode === modes.SELECT
   const accountPlanOptions = useMemo(
@@ -263,14 +270,18 @@ function App() {
           <KeyboardControls>
             <KeyButton
               active={!isSelectMode}
-              command={() => reset()}
+              command={() => cancel()}
               key='ESC'
               text='ESC: Abbrechen' />
             <KeyButton />
             <KeyButton />
             <KeyButton
               active={!isSelectMode && editedRecordValid}
-              command={() => editedRecordValid && dispatch(saveEditedRow())}
+              command={() => {
+                if (editedRecordValid) {
+                  dispatch(saveEditedRow(resetFocus))
+                }
+              }}
               key='F10'
               text='F10: Speichern'
             />
