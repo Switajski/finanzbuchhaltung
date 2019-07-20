@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import useThunkReducer from 'react-hook-thunk-reducer'
 import { ThemeProvider } from 'styled-components'
 import Header from './Header'
 import recordReducer from './recordReducer'
 import clipperTheme from './clipperTheme'
-import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover, Emphasize, Grid } from './UIComponents'
+import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover, Emphasize, Grid, InputWithValidation, NumberCell } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
 import DateInput from './DateInput'
 import Select from './Select'
 import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Cell } from 'styled-css-grid'
-import useKeys from './useKeys'
 import './App.css';
 import { selectPos, saveEditedRow, fetchAccountingRecords, fetchTaxes, fetchAccountPlan, setDebitAccount, setCreditAccount, CANCEL_EDITED_RECORD } from './actions'
 
@@ -21,7 +20,7 @@ const attsInTable = [
   { name: "Datum", selector: r => r.date },
   { name: "Soll", selector: r => r.debitAccount },
   { name: "Haben", selector: r => r.creditAccount },
-  { name: "Summe", selector: r => r.sum },
+  { name: "Summe", selector: r => r.sum, number: true },
   { name: "Text", selector: r => r.text }
 ]
 
@@ -36,23 +35,22 @@ const modes = {
   EDIT: 'Korrigiere',
 }
 
-const enterTextOn = (i, mode = modes.SELECT) => {
-  if (i === 0) return 'Waehle Pos. Nr. aus'
-  else if (i === 7) return mode === modes.EDIT ? 'korrigiere' : 'buche'
+const enterTextOn = (input, mode = modes.SELECT) => {
+  if (input === 'pos') return 'Waehle Pos. Nr. aus'
+  else if (input === 'text') return mode === modes.EDIT ? 'korrigiere' : 'buche'
   else return 'naechstes Eingabefeld'
 }
 
 const initialState = {
   exceptions: [],
+  taxes: [],
   editedPos: '0',
   accountPlan: new Map()
 }
 
 function App() {
 
-  const focusedInputsRef = useRef([]) // weird workaround to have current state in useKeys effect hook: https://stackoverflow.com/questions/53633698/referencing-outdated-state-in-react-useeffect-hook
-  const [focusedInputs, setFocus] = useState(focusedInputsRef.current)
-
+  const [focusedInputs, setFocus] = useState([])
   const [state, dispatch] = useThunkReducer(recordReducer, initialState)
 
   const {
@@ -82,27 +80,6 @@ function App() {
   }
   const mode = whichMode()
 
-  const refs = {
-    pos: useRef(null),
-    date: useRef(null),
-    accountedDate: useRef(null),
-    debitAccount: useRef(null),
-    creditAccount: useRef(null),
-    sum: useRef(null),
-    tax: useRef(null),
-    text: useRef(null),
-  }
-
-  const inputOrder = Object.keys(refs)
-  const nextInput = name => inputOrder[inputOrder.indexOf(name) + 1]
-  const currentIndex = name => inputOrder.indexOf(name)
-  function inputRefOf(key) {
-    const i = currentIndex(key)
-    if (i === undefined)
-      throw new Error("Could not find ref of " + key)
-    return refs[key]
-  }
-
   useEffect(() => {
     dispatch({ type: 'FETCH_INITIAL' })
     dispatch(fetchAccountingRecords())
@@ -110,48 +87,21 @@ function App() {
     dispatch(fetchAccountPlan())
   }, [])
 
-  const currentFocusIndex = () => currentIndex(focusedInputs[focusedInputs.length - 1])
   const isEditedRecordValid = validations => validations && Object.keys(validations).length === 0
   const editedRecordValid = isEditedRecordValid(validations)
-  useKeys((e) => {
-    const focusedInputs = focusedInputsRef.current
-    if (e) {
-      if (e.key === 'Enter') {
-        if (mode === modes.SELECT) {
-          dispatch(selectPos(editedPos))
-        } else {
-          const current = focusedInputs[focusedInputs.length - 1]
-          const next = nextInput(current)
-          if (inputRefOf(next)) {
-            const validMsg = validations[current]
-            validMsg === undefined && inputRefOf(next).current.focus()
-          } else if (isEditedRecordValid(validations)) {
-            dispatch(saveEditedRow())
-          }
-        }
 
-      } else if (e.key === 'Escape')
-        dispatch(cancel())
-    }
-  }, [accountingRecords, editedPos, mode, focusedInputs, validations])
-
-  const hasBeenFocused = input => focusedInputs.slice(0, focusedInputs.length - 2).includes(input)
+  const showValidation = input => {
+    return focusedInputs.slice(0, focusedInputs.length - 1).includes(input)
+  }
 
   const createOnFocusFn = (att) => {
     return () => {
-      focusedInputsRef.current = [...focusedInputs, att]
-      setFocus(focusedInputsRef.current)
+      setFocus(focusedInputs => [...focusedInputs, att])
     }
   }
-  const resetFocus = () => {
-    setFocus([])
-  }
   const cancel = () => {
-    resetFocus()
     return { type: CANCEL_EDITED_RECORD }
   }
-
-  console.log(focusedInputs)
 
   const isSelectMode = mode === modes.SELECT
   const accountPlanOptions = useMemo(
@@ -167,131 +117,131 @@ function App() {
           <Exceptions exceptions={exceptions} />
           <StatusHeader mode={modeTextInStatusHeader[mode] || modeTextInStatusHeader['default']} />
           <Hr />
-          <Padding>
-            <Grid columns={3}>
-              <Cell><label>Position Nr.<Input
-                autoFocus={mode === modes.SELECT}
-                size={6}
-                ref={refs.pos}
-                readOnly={mode !== modes.SELECT}
-                value={editedPos}
-                onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
-                onFocus={createOnFocusFn('pos')}
-              /></label></Cell>
-
-              {!isSelectMode && <><Cell><label>Datum<DateInput
-                autoFocus={mode !== modes.SELECT}
-                value={editedRecord.date}
-                // TODO: default={lastDate}
-                ref={refs.date}
-                validationMsg={hasBeenFocused('date') && validations.date}
-                onChange={({ target }) => dispatch({ type: 'SET_DATE', value: target.value })}
-                onFocus={createOnFocusFn('date')}
-              /></label></Cell>
-
-                <Cell><label>Buchungsdatum<DateInput
-                  value={editedRecord.accountedDate}
-                  ref={refs.accountedDate}
-                  validationMsg={hasBeenFocused('accountedDate') && validations.accountedDate}
-                  onChange={({ target }) => dispatch({ type: 'SET_ACCOUNTED_DATE', value: target.value })}
-                  onFocus={createOnFocusFn('accountedDate')}
-                /></label><br />
-                </Cell></>
-              }
-            </Grid>
-
-            {!isSelectMode && <>
-              <br />
+          <form onSubmit={e => {
+            e.preventDefault()
+            console.log('submit')
+            if (editedRecordValid) {
+              dispatch(saveEditedRow())
+            }
+          }} >
+            <Padding>
               <Grid columns={3}>
-                <Cell><Select
-                  value={editedRecord.debitAccount}
-                  name="Konto Soll&nbsp;&nbsp;"
-                  ref={refs.debitAccount}
-                  validationMsg={hasBeenFocused('debitAccount') && validations.debitAccount}
-                  options={accountPlanOptions}
-                  onChange={({ target }) => dispatch(setDebitAccount(target.value))}
-                  onFocus={createOnFocusFn('debitAccount')}
-                />
-                </Cell>
-                <Cell><Emphasize>
-                  {debitBalance !== undefined && accountPlan.get(editedRecord.debitAccount)}
-                </Emphasize></Cell>
-                <Cell><Emphasize>
-                  {debitBalance !== undefined && 'Saldo ' + debitBalance + ' S'}
-                </Emphasize></Cell>
-              </Grid>
+                <Cell><label>Position Nr.<Input
+                  autoFocus={mode === modes.SELECT}
+                  size={6}
+                  readOnly={mode !== modes.SELECT}
+                  value={editedPos}
+                  onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
+                  onFocus={createOnFocusFn('pos')}
+                /></label></Cell>
 
-              <Grid columns={3}>
-                <Cell><Select
-                  value={editedRecord.creditAccount}
-                  name="Konto Haben&nbsp;"
-                  ref={refs.creditAccount}
-                  validationMsg={hasBeenFocused('creditAccount') && validations.creditAccount}
-                  onFocus={createOnFocusFn('creditAccount')}
-                  options={accountPlanOptions}
-                  onChange={({ target }) => dispatch(setCreditAccount(target.value))} /></Cell>
-                <Cell><Emphasize>
-                  {creditBalance !== undefined && accountPlan.get(editedRecord.creditAccount)}
-                </Emphasize></Cell>
-                <Cell><Emphasize>
-                  {creditBalance !== undefined && 'Saldo ' + creditBalance + ' H'}
-                </Emphasize></Cell>
-              </Grid>
-              <br />
+                {!isSelectMode && <><Cell><label>Datum<DateInput
+                  autoFocus={mode !== modes.SELECT}
+                  value={editedRecord.date}
+                  validationMsg={showValidation('date') && validations.date}
+                  onChange={({ target }) => dispatch({ type: 'SET_DATE', value: target.value })}
+                  onFocus={createOnFocusFn('date')}
+                /></label></Cell>
 
-              <label>Summe<CurrencyInput
-                value={editedRecord.sum}
-                ref={refs.sum}
-                validationMsg={validations.sum}
-                onChange={({ target }) => dispatch({ type: 'SET_SUM', value: target.value })}
-                onFocus={createOnFocusFn('sum')}
-              /></label>
-
-              &nbsp; &nbsp;<label>Steuerschl.<Select
-                size={7}
-                ref={refs.tax}
-                name='tax'
-                validationsMsg={hasBeenFocused('tax') && validations.tax}
-                options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
-                value={editedRecord.tax}
-                onChange={({ target }) => dispatch({ type: 'SET_TAX', value: target.value })}
-                onFocus={createOnFocusFn('tax')}
-              /></label><br />
-
-              <label>Text&nbsp;<Input
-                size={30}
-                ref={refs.text}
-                onFocus={createOnFocusFn('text')}
-                onChange={({ target }) => dispatch({ type: 'SET_TEXT', value: target.value })}
-                value={editedRecord.text}
-              /></label>
-            </>}
-          </Padding>
-          <KeyboardControls>
-            <KeyButton
-              active={!isSelectMode}
-              command={() => cancel()}
-              key='ESC'
-              text='ESC: Abbrechen' />
-            <KeyButton />
-            <KeyButton />
-            <KeyButton
-              active={!isSelectMode && editedRecordValid}
-              command={() => {
-                if (editedRecordValid) {
-                  dispatch(saveEditedRow(resetFocus))
+                  <Cell><label>Buchungsdatum<DateInput
+                    value={editedRecord.accountedDate}
+                    validationMsg={showValidation('accountedDate') && validations.accountedDate}
+                    onChange={({ target }) => dispatch({ type: 'SET_ACCOUNTED_DATE', value: target.value })}
+                    onFocus={createOnFocusFn('accountedDate')}
+                  /></label><br />
+                  </Cell></>
                 }
-              }}
-              key='F10'
-              text='F10: Speichern'
-            />
-            <KeyButton
-              active
-              text={"Enter: " + enterTextOn(currentFocusIndex(), mode)}
-              command={() => dispatch(selectPos(editedPos))}
-            />
-          </KeyboardControls>
+              </Grid>
 
+              {!isSelectMode && <>
+                <br />
+                <Grid columns={3}>
+                  <Cell><Select
+                    value={editedRecord.debitAccount}
+                    name="Konto Soll&nbsp;&nbsp;"
+                    validationMsg={showValidation('debitAccount') && validations.debitAccount}
+                    options={accountPlanOptions}
+                    onChange={({ target }) => dispatch(setDebitAccount(target.value))}
+                    onFocus={createOnFocusFn('debitAccount')}
+                  />
+                  </Cell>
+                  <Cell><Emphasize>
+                    {debitBalance !== undefined && accountPlan.get(editedRecord.debitAccount)}
+                  </Emphasize></Cell>
+                  <Cell><Emphasize>
+                    {debitBalance !== undefined && 'Saldo ' + debitBalance + ' S'}
+                  </Emphasize></Cell>
+                </Grid>
+
+                <Grid columns={3}>
+                  <Cell><Select
+                    value={editedRecord.creditAccount}
+                    name="Konto Haben&nbsp;"
+                    validationMsg={showValidation('creditAccount') && validations.creditAccount}
+                    onFocus={createOnFocusFn('creditAccount')}
+                    options={accountPlanOptions}
+                    onChange={({ target }) => dispatch(setCreditAccount(target.value))} /></Cell>
+                  <Cell><Emphasize>
+                    {creditBalance !== undefined && accountPlan.get(editedRecord.creditAccount)}
+                  </Emphasize></Cell>
+                  <Cell><Emphasize>
+                    {creditBalance !== undefined && 'Saldo ' + creditBalance + ' H'}
+                  </Emphasize></Cell>
+                </Grid>
+                <br />
+
+                <label>Summe<CurrencyInput
+                  value={editedRecord.sum}
+                  validationMsg={validations.sum}
+                  onChange={({ target }) => dispatch({ type: 'SET_SUM', value: target.value })}
+                  onFocus={createOnFocusFn('sum')}
+                /></label>
+
+                &nbsp; &nbsp;<label>Steuerschl.<Select
+                  size={7}
+                  name='tax'
+                  validationsMsg={showValidation('tax') && validations.tax}
+                  options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
+                  value={editedRecord.tax}
+                  onChange={({ target }) => dispatch({ type: 'SET_TAX', value: target.value })}
+                  onFocus={createOnFocusFn('tax')}
+                /></label><br />
+
+                <label>Text&nbsp;<InputWithValidation
+                  size={30}
+                  onFocus={createOnFocusFn('text')}
+                  validationMsg={showValidation('text') && validations.text}
+                  onChange={({ target }) => dispatch({ type: 'SET_TEXT', value: target.value })}
+                  value={editedRecord.text}
+                /></label>
+                {showValidation('text') && validations.text && '\u26A0'}
+              </>}
+            </Padding>
+            <KeyboardControls>
+              <KeyButton
+                active={!isSelectMode}
+                command={() => cancel()}
+                key='ESC'
+                text='ESC: Abbrechen' />
+              <KeyButton />
+              <KeyButton />
+              <KeyButton
+                active={!isSelectMode && editedRecordValid}
+                command={() => {
+                  if (editedRecordValid) {
+                    dispatch(saveEditedRow())
+                  }
+                }}
+                key='F10'
+                text='F10: Speichern'
+              />
+              <KeyButton
+                active
+                text={"Enter: " + enterTextOn(focusedInputs[focusedInputs.length], mode)}
+                command={() => dispatch(selectPos(editedPos))}
+              />
+            </KeyboardControls>
+          </form>
           <Hr />
           <Scrollable>
             <Table>
@@ -301,11 +251,13 @@ function App() {
               <tbody>
                 {(accountingRecords || []).map(r =>
                   <TrWithHover onClick={() => dispatch(selectPos(indexSelector(r)))}
-                    key={indexSelector(r)}>
+                    key={indexSelector(r) + r.text}>
                     {attsInTable.map((att, i) =>
-                      <td key={i}>
-                        {att.selector(r)}
-                      </td>
+                      att.number ? <NumberCell
+                        even={(att.selector(r) % 1) === 0} value={att.selector(r)} />
+                        : <td key={i} {...att}>
+                          {att.selector(r)}
+                        </td>
                     )}
                   </TrWithHover>
                 )}

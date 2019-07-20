@@ -17,6 +17,12 @@ border: 0;`
 export const Emphasize = styled.span`
 color: ${props => props.theme.emphasize}`
 
+const NumberCellStyle = styled.td`
+text-align:right;
+${props => props.even && 'padding-right: 1.9em;'}`
+export const NumberCell = props => <NumberCellStyle {...props}>{props.value.toLocaleString()}</NumberCellStyle>
+
+
 export const Screen = styled.div`
 height: 90vh;
 display: block;

@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useImperativeHandle } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 
 const StyledInput = styled.input`
@@ -14,15 +14,10 @@ margin-left: 10px;
 }`
 
 function CurrencyInput(props, ref) {
-    const inputRef = useRef(null)
-    useImperativeHandle(ref, () => ({
-        focus: () => inputRef.current.focus()
-    }));
 
     return <StyledInput
         {...props}
         type='number'
-        step='any'
-        ref={inputRef} />;
+        step='any' />;
 }
-export default forwardRef(CurrencyInput);
+export default CurrencyInput;

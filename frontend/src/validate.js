@@ -1,6 +1,7 @@
 const INVALID_DATE_MSG = 'Datum ex. nicht'
 const INVALID_ACCOUNT_MSG = 'Konto ex. nicht'
 const INVALID_TAX_MSG = 'Steuerschl. ex. nicht'
+const TEXT_EMPTY_MSG = 'Keinen Text eingegeben'
 
 const isDate = v => !isNaN(Date.parse(v))
 const validate = (editedRecord, taxes, accountPlan) => {
@@ -16,6 +17,8 @@ const validate = (editedRecord, taxes, accountPlan) => {
             validations.creditAccount = INVALID_ACCOUNT_MSG
         if (!taxes.includes(editedRecord.tax))
             validations.tax = INVALID_TAX_MSG
+        if (editedRecord.text === '')
+            validations.text = TEXT_EMPTY_MSG
     }
     return validations
 }

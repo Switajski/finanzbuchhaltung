@@ -135,7 +135,7 @@ export const addException = e => {
     }
 }
 
-export const saveEditedRow = (onSuccess) => {
+export const saveEditedRow = () => {
     return (dispatch, getState) => {
         const { editedRecord } = getState()
         fetch('/create-record', {
@@ -148,7 +148,6 @@ export const saveEditedRow = (onSuccess) => {
             if (r.status === 200) {
                 dispatch(fetchAccountingRecords())
                 dispatch({ type: 'RECEIVE_SAVED_RECORD' })
-                onSuccess()
             } else dispatch(addException('Server response was not 200 (OK)'))
         }).catch(e => dispatch(addException(stringifyException(e))))
     }
