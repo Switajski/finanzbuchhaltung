@@ -85,6 +85,15 @@
                (add-record-with-dans buchen-file (into-array Object record)))
              {:status 200
               :body   json})
+           (POST "/create-record" json
+             (doseq [record (to-list-of-values
+                              (generate-accounting-records
+                                (:body json)
+                                (edn/read "account-config.edn")
+                                (edn/read "taxes.edn")))]
+               (edit-record-with-dans buchen-file (into-array Object record)))
+             {:status 200
+              :body   json})
 
            (route/not-found " Not Found"))
 

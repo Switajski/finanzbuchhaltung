@@ -17,10 +17,18 @@ border: 0;`
 export const Emphasize = styled.span`
 color: ${props => props.theme.emphasize}`
 
-const NumberCellStyle = styled.td`
-text-align:right;
-${props => props.even && 'padding-right: 1.9em;'}`
-export const NumberCell = props => <NumberCellStyle {...props}>{props.value.toLocaleString()}</NumberCellStyle>
+const evenOn1stDecimal = v => (((v * 10) % 1) === 0 && v % 1 !== 0)
+const NumberFormatStyle = styled.td`
+text-align:right;`
+const FractionAwarePadding = styled.span`${props => ((props.value % 1) === 0) && 'padding-right: 1.85em;'}`
+export const NumberCell = props => {
+    const str = props.value.toLocaleString()
+    return <NumberFormatStyle>
+        <FractionAwarePadding {...props}>
+            {evenOn1stDecimal(props.value) ? str + '0' : str}
+        </FractionAwarePadding>&#8364;
+    </NumberFormatStyle>
+}
 
 
 export const Screen = styled.div`
@@ -75,17 +83,6 @@ Input.defaultProps = {
 export const Hr = styled.hr`
 margin:0;
 border:0.5px solid;`
-
-export function Exceptions(props) {
-    return (props.exceptions && props.exceptions.length > 0) ? <div>
-        <h3>Exception occured</h3>
-        {props.exceptions.map(e => <>
-            <h4>{e.message}</h4>
-            {JSON.stringify(e)}
-        </>)}
-    </div>
-        : <></>
-}
 
 export const Padding = styled.div`
 padding: 5px 20px 5px 20px;`

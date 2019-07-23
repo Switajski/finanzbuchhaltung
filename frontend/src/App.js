@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import useThunkReducer from 'react-hook-thunk-reducer'
 import { ThemeProvider } from 'styled-components'
+import { useAlert } from "react-alert";
+
 import Header from './Header'
 import recordReducer from './recordReducer'
 import clipperTheme from './clipperTheme'
@@ -35,12 +37,6 @@ const modes = {
   EDIT: 'Korrigiere',
 }
 
-const enterTextOn = (input, mode = modes.SELECT) => {
-  if (input === 'pos') return 'Waehle Pos. Nr. aus'
-  else if (input === 'text') return mode === modes.EDIT ? 'korrigiere' : 'buche'
-  else return 'naechstes Eingabefeld'
-}
-
 const initialState = {
   exceptions: [],
   taxes: [],
@@ -50,8 +46,9 @@ const initialState = {
 
 function App() {
 
-  const [focusedInputs, setFocus] = useState([])
+  const [touchedInputs, setFocus] = useState([])
   const [state, dispatch] = useThunkReducer(recordReducer, initialState)
+  const alert = useAlert()
 
   const {
     editedPos,
@@ -86,17 +83,20 @@ function App() {
     dispatch(fetchTaxes())
     dispatch(fetchAccountPlan())
   }, [])
+  useEffect(() => {
+    exceptions.length > 0 && alert.error(exceptions[exceptions.length - 1])
+  }, [exceptions])
 
   const isEditedRecordValid = validations => validations && Object.keys(validations).length === 0
   const editedRecordValid = isEditedRecordValid(validations)
 
   const showValidation = input => {
-    return focusedInputs.slice(0, focusedInputs.length - 1).includes(input)
+    return touchedInputs.slice(0, touchedInputs.length - 1).includes(input)
   }
 
   const createOnFocusFn = (att) => {
     return () => {
-      setFocus(focusedInputs => [...focusedInputs, att])
+      setFocus(touchedInputs => [...touchedInputs, att])
     }
   }
   const cancel = () => {
@@ -114,14 +114,15 @@ function App() {
       <Screen>
         <Header />
         <Content>
-          <Exceptions exceptions={exceptions} />
           <StatusHeader mode={modeTextInStatusHeader[mode] || modeTextInStatusHeader['default']} />
           <Hr />
           <form onSubmit={e => {
             e.preventDefault()
-            console.log('submit')
             if (editedRecordValid) {
               dispatch(saveEditedRow())
+              alert.success('Buchung gespeichert')
+            } else if (mode !== modes.SELECT) {
+              alert.info('Speichern nicht moeglich, weil Buchung nicht valide')
             }
           }} >
             <Padding>
@@ -200,7 +201,7 @@ function App() {
                 &nbsp; &nbsp;<label>Steuerschl.<Select
                   size={7}
                   name='tax'
-                  validationsMsg={showValidation('tax') && validations.tax}
+                  validationMsg={showValidation('tax') && validations.tax}
                   options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
                   value={editedRecord.tax}
                   onChange={({ target }) => dispatch({ type: 'SET_TAX', value: target.value })}
@@ -226,18 +227,12 @@ function App() {
               <KeyButton />
               <KeyButton />
               <KeyButton
-                active={!isSelectMode && editedRecordValid}
-                command={() => {
-                  if (editedRecordValid) {
-                    dispatch(saveEditedRow())
-                  }
-                }}
-                key='F10'
-                text='F10: Speichern'
+                active={!isSelectMode}
+                text='TAB: naechstes Eingabefeld'
               />
               <KeyButton
                 active
-                text={"Enter: " + enterTextOn(focusedInputs[focusedInputs.length], mode)}
+                text={"Enter: " + (mode === modes.SELECT ? 'neue Buchung' : 'speichern')}
                 command={() => dispatch(selectPos(editedPos))}
               />
             </KeyboardControls>
@@ -252,12 +247,9 @@ function App() {
                 {(accountingRecords || []).map(r =>
                   <TrWithHover onClick={() => dispatch(selectPos(indexSelector(r)))}
                     key={indexSelector(r) + r.text}>
-                    {attsInTable.map((att, i) =>
-                      att.number ? <NumberCell
-                        even={(att.selector(r) % 1) === 0} value={att.selector(r)} />
-                        : <td key={i} {...att}>
-                          {att.selector(r)}
-                        </td>
+                    {attsInTable.map((att, i) => att.number
+                      ? <NumberCell value={att.selector(r)} />
+                      : <td key={i}>{att.selector(r)}</td>
                     )}
                   </TrWithHover>
                 )}

@@ -91,3 +91,9 @@
     (try (.open table)
          (.addRecord table record)
          (finally (.close table)))))
+
+(defn edit-record-with-dans [file record]
+  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. (.toURI (jio/resource file))))]
+    (try (.open table)
+         (.updateRecordAt table (:pos record) record)
+         (finally (.close table)))))

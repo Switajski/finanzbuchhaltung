@@ -1,21 +1,26 @@
 import { indexSelector } from './App'
 
-const stringifyException = (e, action) => e.name + ': ' + e.message + (action ? action : '')
+const stringifyException = (e, action) => {
+    if (e.name === undefined)
+        return JSON.stringify(e)
+    return e.name + ': ' + e.message + (action ? action : '') + (e.statusText ? e.statusText : '')
+}
 
 const fetchBalance = accountNo =>
-    fetch('/balance?accountNo=' + accountNo)
-        .then(r => r.json())//TODO: what if status != 200
+    failureAwareFetch('/balance?accountNo=' + accountNo)
         .then(r => r.sum)
 
 export const RECEIVE_DEBIT_BALANCE = "RECEIVE_DEBIT_BALANCE";
 export const fetchDebitBalance = accountNo =>
     dispatch => fetchBalance(accountNo)
         .then(balance => dispatch({ type: RECEIVE_DEBIT_BALANCE, value: balance }))
+        .catch(e => dispatch(addException(stringifyException(e), RECEIVE_DEBIT_BALANCE)))
 
 export const RECEIVE_CREDIT_BALANCE = "RECEIVE_CREDIT_BALANCE";
 export const fetchCreditBalance = accountNo =>
     dispatch => fetchBalance(accountNo)
         .then(balance => dispatch({ type: RECEIVE_CREDIT_BALANCE, value: balance }))
+        .catch(e => dispatch(addException(stringifyException(e), RECEIVE_CREDIT_BALANCE)))
 
 export const selectPos = pos => {
     return (dispatch, getState) => {
@@ -50,10 +55,25 @@ export const selectPos = pos => {
     }
 }
 
+const failureAwareFetch = (url, opts) => {
+    return fetch(url, opts)
+        .then(r => {
+            if (!r.ok) {
+                throw {
+                    ...r,
+                    name: r.status,
+                    status: r.status,
+                    message: r.statusText,
+                    url: r.url
+                }
+            }
+            return r.json()
+        })
+}
+
 const RECEIVE_ACCOUNTING_RECORDS = 'RECEIVE_ACCOUNTING_RECORDS'
 export const fetchAccountingRecords = () => {
-    return dispatch => fetch("/accounting-records")
-        .then(r => r.json())
+    return dispatch => failureAwareFetch("/accounting-records")
         .then(r => {
             dispatch({
                 type: RECEIVE_ACCOUNTING_RECORDS,
@@ -65,8 +85,7 @@ export const fetchAccountingRecords = () => {
 }
 export const RECEIVE_ACCOUNT_PLAN = 'RECEIVE_ACCOUNT_PLAN';
 export const fetchAccountPlan = () => {
-    return dispatch => fetch("/account-plan") //TODO: use redux with state machine
-        .then(r => r.json())
+    return dispatch => failureAwareFetch("/account-plan") //TODO: use redux with state machine
         .then(r => {
             dispatch({
                 type: RECEIVE_ACCOUNT_PLAN,
@@ -82,8 +101,7 @@ export const fetchAccountPlan = () => {
 
 export const RECEIVE_TAXES = 'RECEIVE_TAXES';
 export const fetchTaxes = () => {
-    return dispatch => fetch("/taxes")
-        .then(r => r.json())
+    return dispatch => failureAwareFetch("/taxes")
         .then(r => dispatch({ type: RECEIVE_TAXES, value: r }))
         .catch(e => dispatch(addException(stringifyException(e))))
 }
@@ -138,17 +156,15 @@ export const addException = e => {
 export const saveEditedRow = () => {
     return (dispatch, getState) => {
         const { editedRecord } = getState()
-        fetch('/create-record', {
+        failureAwareFetch('/create-record', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(editedRecord)
         }).then(r => {
-            if (r.status === 200) {
-                dispatch(fetchAccountingRecords())
-                dispatch({ type: 'RECEIVE_SAVED_RECORD' })
-            } else dispatch(addException('Server response was not 200 (OK)'))
+            dispatch(fetchAccountingRecords())
+            dispatch({ type: 'RECEIVE_SAVED_RECORD' })
         }).catch(e => dispatch(addException(stringifyException(e))))
     }
 }
