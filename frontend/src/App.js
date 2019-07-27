@@ -6,7 +6,7 @@ import { useAlert } from "react-alert";
 import Header from './Header'
 import recordReducer from './recordReducer'
 import clipperTheme from './clipperTheme'
-import { Input, Hr, Exceptions, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover, Emphasize, Grid, InputWithValidation, NumberCell } from './UIComponents'
+import { Input, Hr, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover, Emphasize, Grid, InputWithValidation, NumberCell } from './UIComponents'
 import CurrencyInput from './CurrencyInput'
 import DateInput from './DateInput'
 import Select from './Select'
@@ -87,11 +87,10 @@ function App() {
     exceptions.length > 0 && alert.error(exceptions[exceptions.length - 1])
   }, [exceptions])
 
-  const isEditedRecordValid = validations => validations && Object.keys(validations).length === 0
-  const editedRecordValid = isEditedRecordValid(validations)
+  const editedRecordValid = validations && Object.keys(validations).length === 0
 
   const showValidation = input => {
-    return touchedInputs.slice(0, touchedInputs.length - 1).includes(input)
+    return touchedInputs.slice(0, touchedInputs.length).includes(input)
   }
 
   const createOnFocusFn = (att) => {
@@ -99,8 +98,14 @@ function App() {
       setFocus(touchedInputs => [...touchedInputs, att])
     }
   }
-  const cancel = () => {
-    return { type: CANCEL_EDITED_RECORD }
+  const saveEditedRecordCommand = () => {
+    if (editedRecordValid) {
+      dispatch(saveEditedRow())
+      setFocus([])
+      alert.success('Buchung gespeichert')
+    } else {
+      alert.info('Speichern nicht moeglich, weil Buchung nicht valide')
+    }
   }
 
   const isSelectMode = mode === modes.SELECT
@@ -109,6 +114,9 @@ function App() {
       (accountPlan || new Map()),
       ([k, v]) => { return { value: k, name: v } }),
     [accountPlan])
+
+  console.log(validations)
+  console.log(touchedInputs)
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
@@ -116,45 +124,73 @@ function App() {
         <Content>
           <StatusHeader mode={modeTextInStatusHeader[mode] || modeTextInStatusHeader['default']} />
           <Hr />
-          <form onSubmit={e => {
-            e.preventDefault()
-            if (editedRecordValid) {
-              dispatch(saveEditedRow())
-              alert.success('Buchung gespeichert')
-            } else if (mode !== modes.SELECT) {
-              alert.info('Speichern nicht moeglich, weil Buchung nicht valide')
-            }
-          }} >
-            <Padding>
-              <Grid columns={3}>
-                <Cell><label>Position Nr.<Input
-                  autoFocus={mode === modes.SELECT}
-                  size={6}
-                  readOnly={mode !== modes.SELECT}
-                  value={editedPos}
-                  onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
-                  onFocus={createOnFocusFn('pos')}
-                /></label></Cell>
 
-                {!isSelectMode && <><Cell><label>Datum<DateInput
-                  autoFocus={mode !== modes.SELECT}
-                  value={editedRecord.date}
-                  validationMsg={showValidation('date') && validations.date}
-                  onChange={({ target }) => dispatch({ type: 'SET_DATE', value: target.value })}
-                  onFocus={createOnFocusFn('date')}
-                /></label></Cell>
+          {isSelectMode &&
+            <form onSubmit={e => {
+              e.preventDefault()
+              dispatch(selectPos(editedPos))
+            }} >
+              <Padding>
+                <Grid columns={3}>
+                  <Cell><label>Position Nr.<Input
+                    autoFocus
+                    size={6}
+                    value={editedPos}
+                    onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
+                    onFocus={createOnFocusFn('pos')}
+                  /></label></Cell>
+                </Grid>
+              </Padding>
+              <KeyboardControls>
+                <KeyButton />
+                <KeyButton />
+                <KeyButton />
+                <KeyButton />
+                <KeyButton
+                  active
+                  text='Enter: neue Buchung'
+                  command={() => dispatch(selectPos(editedPos))}
+                />
+              </KeyboardControls>
+            </form>
+          }
+
+          {!isSelectMode &&
+            <form onSubmit={e => {
+              e.preventDefault()
+              saveEditedRecordCommand()
+            }} >
+              <Padding>
+                <Grid columns={3}>
+                  <Cell><label>Position Nr.<Input
+                    autoFocus={mode === modes.SELECT}
+                    size={6}
+                    readOnly={mode !== modes.SELECT}
+                    value={editedPos}
+                    required
+                    onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
+                    onFocus={createOnFocusFn('pos')}
+                  /></label></Cell>
+
+                  <Cell><label>Datum<DateInput
+                    autoFocus={mode !== modes.SELECT}
+                    value={editedRecord.date}
+                    validationMsg={showValidation('date') && validations.date}
+                    onChange={({ target }) => dispatch({ type: 'SET_DATE', value: target.value })}
+                    required
+                    onFocus={createOnFocusFn('date')}
+                  /></label></Cell>
 
                   <Cell><label>Buchungsdatum<DateInput
                     value={editedRecord.accountedDate}
                     validationMsg={showValidation('accountedDate') && validations.accountedDate}
+                    required
                     onChange={({ target }) => dispatch({ type: 'SET_ACCOUNTED_DATE', value: target.value })}
                     onFocus={createOnFocusFn('accountedDate')}
                   /></label><br />
-                  </Cell></>
-                }
-              </Grid>
+                  </Cell>
+                </Grid>
 
-              {!isSelectMode && <>
                 <br />
                 <Grid columns={3}>
                   <Cell><Select
@@ -162,6 +198,7 @@ function App() {
                     name="Konto Soll&nbsp;&nbsp;"
                     validationMsg={showValidation('debitAccount') && validations.debitAccount}
                     options={accountPlanOptions}
+                    required
                     onChange={({ target }) => dispatch(setDebitAccount(target.value))}
                     onFocus={createOnFocusFn('debitAccount')}
                   />
@@ -181,6 +218,7 @@ function App() {
                     validationMsg={showValidation('creditAccount') && validations.creditAccount}
                     onFocus={createOnFocusFn('creditAccount')}
                     options={accountPlanOptions}
+                    required
                     onChange={({ target }) => dispatch(setCreditAccount(target.value))} /></Cell>
                   <Cell><Emphasize>
                     {creditBalance !== undefined && accountPlan.get(editedRecord.creditAccount)}
@@ -195,6 +233,7 @@ function App() {
                   value={editedRecord.sum}
                   validationMsg={validations.sum}
                   onChange={({ target }) => dispatch({ type: 'SET_SUM', value: target.value })}
+                  required
                   onFocus={createOnFocusFn('sum')}
                 /></label>
 
@@ -205,6 +244,7 @@ function App() {
                   options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
                   value={editedRecord.tax}
                   onChange={({ target }) => dispatch({ type: 'SET_TAX', value: target.value })}
+                  required
                   onFocus={createOnFocusFn('tax')}
                 /></label><br />
 
@@ -214,29 +254,34 @@ function App() {
                   validationMsg={showValidation('text') && validations.text}
                   onChange={({ target }) => dispatch({ type: 'SET_TEXT', value: target.value })}
                   value={editedRecord.text}
+                  required
                 /></label>
                 {showValidation('text') && validations.text && '\u26A0'}
-              </>}
-            </Padding>
-            <KeyboardControls>
-              <KeyButton
-                active={!isSelectMode}
-                command={() => cancel()}
-                key='ESC'
-                text='ESC: Abbrechen' />
-              <KeyButton />
-              <KeyButton />
-              <KeyButton
-                active={!isSelectMode}
-                text='TAB: naechstes Eingabefeld'
-              />
-              <KeyButton
-                active
-                text={"Enter: " + (mode === modes.SELECT ? 'neue Buchung' : 'speichern')}
-                command={() => dispatch(selectPos(editedPos))}
-              />
-            </KeyboardControls>
-          </form>
+              </Padding>
+              <KeyboardControls>
+                <KeyButton
+                  active
+                  type='reset'
+                  command={() => {
+                    setFocus([])
+                    dispatch({ type: CANCEL_EDITED_RECORD })
+                  }}
+                  key='ESC'
+                  text='ESC: Abbrechen' />
+                <KeyButton />
+                <KeyButton />
+                <KeyButton
+                  active
+                  text='TAB: naechstes Eingabefeld'
+                />
+                <KeyButton
+                  active
+                  text='Enter: speichern'
+                  type='submit'
+                />
+              </KeyboardControls>
+            </form>
+          }
           <Hr />
           <Scrollable>
             <Table>

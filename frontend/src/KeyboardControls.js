@@ -14,7 +14,7 @@ export default function KeyboardControls(props) {
 }
 
 export function KeyButton(props) {
-    return <Cell>{props.active && <Button {...props} onClick={props.command}>
+    return <Cell>{props.active && <Button type='button' {...props} onClick={props.command}>
         {props.text}
     </Button>}</Cell>
 }

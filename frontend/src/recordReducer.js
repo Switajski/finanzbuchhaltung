@@ -13,7 +13,7 @@ const resetState = state => {
         editedRecord: undefined,
         validations: {},
         creditBalance: undefined,
-        balance: undefined
+        debitBalance: undefined
     }
 }
 const validateAndMerge = (editedRecord, taxes, accountPlan) => {
@@ -29,7 +29,6 @@ const lastPosition = (records) => records
 export const indexSelector = r => parseInt(r.pos)
 const getRecord = (pos, accountingRecords) =>
     accountingRecords.find(e => pos === indexSelector(e))
-
 
 function recordReducer(state, action) {
     console.log(action)
@@ -114,7 +113,7 @@ function recordReducer(state, action) {
                     creditAccount: '',
                     date: action.initialDate || '',
                     accountedDate: action.initialDate || '',
-                    sum: 0,
+                    sum: '',
                     text: '',
                     tax: ''
                 }
