@@ -17,20 +17,6 @@ border: 0;`
 export const Emphasize = styled.span`
 color: ${props => props.theme.emphasize}`
 
-const evenOn1stDecimal = v => (((v * 10) % 1) === 0 && v % 1 !== 0)
-const NumberFormatStyle = styled.td`
-text-align:right;`
-const FractionAwarePadding = styled.span`${props => ((props.value % 1) === 0) && 'padding-right: 1.85em;'}`
-export const NumberCell = props => {
-    const str = props.value.toLocaleString()
-    return <NumberFormatStyle>
-        <FractionAwarePadding {...props}>
-            {evenOn1stDecimal(props.value) ? str + '0' : str}
-        </FractionAwarePadding>&#8364;
-    </NumberFormatStyle>
-}
-
-
 export const Screen = styled.div`
 height: 90vh;
 display: block;
@@ -43,17 +29,6 @@ export const Content = styled.div`
 height: 100%;
 overflow:hidden;
 border: 1px solid;`
-
-export const Table = styled.table`
-width: 100%;`
-export const TrWithHover = styled.tr`
-cursor:pointer;
-&:hover {
-    background-color: ${props => props.theme.variableBg};
-    color: ${props => props.active};
-}`
-export const Thead = styled.thead`text-align: left;`
-export const Th = styled.th`border-bottom: 1px solid;`
 
 export const Scrollable = styled.div`
 overflow:scroll;

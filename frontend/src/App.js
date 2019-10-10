@@ -1,17 +1,16 @@
-import React, { useEffect, useMemo } from 'react'
-import useThunkReducer from 'react-hook-thunk-reducer'
+import React, { useEffect, useState } from 'react'
 import { ThemeProvider } from 'styled-components'
 import { useAlert } from "react-alert";
+import useKey from 'use-key-hook'
+
+import useAccountingRecords from './useAccountingRecords'
+import PositionSelectInputForm from './PositionSelectForm'
 
 import Header from './Header'
-import recordReducer from './recordReducer'
 import clipperTheme from './clipperTheme'
-import { Hr, StatusHeader, Padding, Screen, Scrollable, Table, Thead, Th, Content, TrWithHover, Grid, NumberCell } from './UIComponents'
-import LabeledInput from './LabeledInput'
-import KeyboardControls, { KeyButton } from './KeyboardControls'
-import { Cell } from 'styled-css-grid'
+import { Hr, StatusHeader, Screen, Scrollable, Content } from './UIComponents'
+import Table from './Table'
 import './App.css';
-import { selectPos, saveEditedRow, fetchAccountingRecords } from './actions'
 
 import AccountingRecordForm from './AccountingRecordForm';
 
@@ -24,135 +23,99 @@ export const indexSelector = r => parseInt(r.pos)
  */
 const toDomString = d => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`
 
-const attsInTable = [
-  { name: "Pos.", selector: r => r.pos },
-  { name: "Datum", selector: r => r.date },
-  { name: "Soll", selector: r => r.debitAccount },
-  { name: "Haben", selector: r => r.creditAccount },
-  { name: "Summe", selector: r => r.sum, number: true },
-  { name: "Text", selector: r => r.text }
-]
-
-const modeTextInStatusHeader = {
-  editMode: 'korrigiere',
-  newMode: 'neue',
-  default: ''
-}
-const modes = {
-  SELECT: 'Waehle Pos. Nr. aus',
-  NEW: 'Buche',
-  EDIT: 'Korrigiere',
-}
-
-const initialState = {
-  exceptions: [],
-  editedPos: '0'
-}
-
 function App() {
+  const [editedPos, setEditedPos] = useState(0)
+  const [dirty, setDirty] = useState(false)
+  const [recordTemplate, setRecordTemplate] = useState()
+  const selectMode = recordTemplate === undefined
+  const editMode = !selectMode
 
-  const [state, dispatch] = useThunkReducer(recordReducer, initialState)
-  const alert = useAlert()
+  const { accountingRecords, arMessages, saveAccountingRecord } = useAccountingRecords(indexSelector, dirty)
 
-  const {
-    editedPos,
-    editedRecord,
-    accountingRecords,
-    exceptions
-  } = state
+  const cancel = () => setRecordTemplate(undefined)
 
-  const indexedPositions = useMemo(
-    () => (accountingRecords || []).map(r => indexSelector(r)),
-    [accountingRecords])
-
-  const defaultDate = accountingRecords ? accountingRecords[0].date
-    : toDomString(new Date())
-
-  const whichMode = () => {
-    if (accountingRecords === undefined
-      || accountingRecords.length === 0
-      || editedRecord === undefined) {
-      return modes.SELECT
+  useEffect(() => {
+    if (accountingRecords.size > 0) {
+      const firstAr = accountingRecords.values().next().value
+      setEditedPos(indexSelector(firstAr) + 1)
     }
-    const existsPosition = indexedPositions.includes(editedRecord.pos)
-    return existsPosition ? modes.EDIT : modes.NEW
-  }
-  const mode = whichMode()
-  const isSelectMode = mode === modes.SELECT
+  }, [accountingRecords, dirty])
 
+  const alert = useAlert()
   useEffect(() => {
-    dispatch({ type: 'FETCH_INITIAL' })
-    dispatch(fetchAccountingRecords())
-  }, [])
-  useEffect(() => {
-    exceptions.length > 0 && alert.error(exceptions[exceptions.length - 1])
-  }, [exceptions])
+    if (arMessages && arMessages.length > 0) {
+      const newMessage = arMessages[arMessages.length - 1]
+      if (newMessage instanceof Error) {
+        alert.error(newMessage.message)
+      } else if (newMessage.title && newMessage.title === 'success') {
+        // TODO: create contract for that -  do that in a place that has control over the transaction - it's somehow an effect
+        // perhaps with prop formState.isSubmitted from react-hook-form?
+        alert.success(newMessage.message)
+        cancel()
+        setDirty(!dirty)
+      } else alert.info(newMessage.message)
+    }
+  }, [arMessages])
 
-  const saveEditedRecordCommand = formData => {
-    dispatch(saveEditedRow(formData))
+  function selectPos(pos) {
+    const newPos = accountingRecords.keys().next().value + 1
+    if (pos === newPos) {
+      const defaultDate = accountingRecords.size > 0 ? accountingRecords.values().next().value.date : toDomString(new Date())
+      setRecordTemplate({
+        date: defaultDate,
+        accountedDate: defaultDate
+      })
+    } else if (accountingRecords.has(pos)) {
+      if (pos !== editedPos)
+        setEditedPos(pos)
+      setRecordTemplate({ ...accountingRecords.get(pos) })
+    } else {
+      alert.info(`Position ${pos} nicht erlaubt.`)
+    }
   }
+
+  useKey((pressedKey) => {
+    cancel()
+  }, {
+    detectKeys: [27]
+  });
 
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
         <Header />
         <Content>
-          <StatusHeader mode={modeTextInStatusHeader[mode] || modeTextInStatusHeader['default']} />
+          <StatusHeader mode={selectMode ? '' :
+            (accountingRecords.has(editedPos) ? 'korrigiere' : 'neue')} />
           <Hr />
-
-          {isSelectMode &&
-            <form onSubmit={e => {
-              e.preventDefault()
-              dispatch(selectPos(editedPos))
-            }} >
-              <Padding>
-                <Grid columns={3}>
-                  <Cell><LabeledInput
-                    autoFocus
-                    label='Position Nr.'
-                    size={6}
-                    value={editedPos}
-                    onChange={e => dispatch({ type: 'SET_EDITED_POS', value: parseInt(e.target.value) })}
-                  /></Cell>
-                </Grid>
-              </Padding>
-              <KeyboardControls>
-                <KeyButton />
-                <KeyButton />
-                <KeyButton />
-                <KeyButton />
-                <KeyButton
-                  active
-                  text='Enter: neue Buchung'
-                  command={() => dispatch(selectPos(editedPos))}
-                />
-              </KeyboardControls>
-            </form>
-          }
-          {!isSelectMode && <AccountingRecordForm
-            onSubmit={saveEditedRecordCommand}
-            cancel={() => console.error('TODO: implement me!')}
+          {selectMode && <PositionSelectInputForm
+            autoFocus
+            label='Position Nr.'
+            size={6}
+            value={editedPos}
+            onSubmit={() => selectPos(editedPos)}
             pos={editedPos}
-            defaultDate={defaultDate}
+            onChange={setEditedPos}
+          />}
+          {editMode && <AccountingRecordForm
+            onSubmit={saveAccountingRecord}
+            cancel={cancel}
+            pos={editedPos}
+            defaultValues={recordTemplate}
           />}
           <Hr />
           <Scrollable>
-            <Table>
-              <Thead>
-                <tr>{attsInTable.map(att => <Th key={att.name}>{att.name}</Th>)}</tr>
-              </Thead>
-              <tbody>
-                {(accountingRecords || []).map(r =>
-                  <TrWithHover onClick={() => dispatch(selectPos(indexSelector(r)))}
-                    key={indexSelector(r) + r.text}>
-                    {attsInTable.map((att, i) => att.number
-                      ? <NumberCell value={att.selector(r)} key={indexSelector(r) + r.text} />
-                      : <td key={i}>{att.selector(r)}</td>
-                    )}
-                  </TrWithHover>
-                )}
-              </tbody>
-            </Table>
+            <Table attributes={[
+              { name: "Pos.", selector: r => r.pos },
+              { name: "Datum", selector: r => r.date },
+              { name: "Soll", selector: r => r.debitAccount },
+              { name: "Haben", selector: r => r.creditAccount },
+              { name: "Summe", selector: r => r.sum, number: true },
+              { name: "Text", selector: r => r.text }
+            ]}
+              values={accountingRecords}
+              keySelector={indexSelector}
+              onRowClick={v => selectPos(indexSelector(v))} />
           </Scrollable>
         </Content>
       </Screen>

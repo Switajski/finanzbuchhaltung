@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import useForm from "react-hook-form";
 import KeyboardControls, { KeyButton } from './KeyboardControls'
 import { Padding, Grid, Emphasize, HorSpacer } from './UIComponents'
@@ -24,13 +24,10 @@ const isDate = v => isNaN(Date.parse(v))
 function AccountingRecordForm(props) {
 
     const [{ accountPlan, taxes, isLoading, isError }] = useAccountPlan();
-    const { handleSubmit, register, errors } = useForm({
-        defaultValues: {
-            nativeValidation: true,
-            date: props.defaultDate,
-            accountedDate: props.defaultDate
-        }
+    const { handleSubmit, register, errors, reset } = useForm({
+        defaultValues: props.defaultValues
     });
+    useEffect(() => reset(props.defaultValues), [props.defaultValues])
 
     const [creditAccount, setCreditAccount] = useState()
     const [debitAccount, setDebitAccount] = useState()
@@ -44,7 +41,8 @@ function AccountingRecordForm(props) {
             ([k, v]) => { return { value: k, name: v } }),
         [accountPlan])
 
-    /* The is loading condition ensures that the select input is rendered only when 'accountPlan' prop from api-call is available. Otherwise the 'register' fn from 'react-form-hook'-lib takes args from 1st render only. As result the args are not updated, when accountPlan or taxes are loaded :/ */
+    /* The is loading condition ensures that the select input is rendered only when the app already received 'accountPlan' prop from api-call. The 'register' fn from 'react-form-hook'-lib takes args from 1st render only. As result the args are not updated, when accountPlan or taxes are loaded :/ */
+    // TODO: reproduce in Codesandbox and report lib-owner
     if (isError) return <p>Konnte Buchungsplan nicht vom Server laden.</p>
     return isLoading ? <p>Laedt...</p> : <form
         onSubmit={handleSubmit(props.onSubmit)} >
@@ -56,6 +54,7 @@ function AccountingRecordForm(props) {
                     size={6}
                     readOnly={true}
                     value={props.pos}
+                    ref={register}
                 /></Cell>
 
                 <Cell><DateInput
@@ -141,7 +140,6 @@ function AccountingRecordForm(props) {
                 validationMsg={errors.tax}
             />
             <br />
-
             <TextInput
                 name='text'
                 label='Text&nbsp;'
