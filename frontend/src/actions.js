@@ -59,13 +59,13 @@ const failureAwareFetch = (url, opts) => {
     return fetch(url, opts)
         .then(r => {
             if (!r.ok) {
-                throw {
+                throw new Error({
                     ...r,
                     name: r.status,
                     status: r.status,
                     message: r.statusText,
                     url: r.url
-                }
+                })
             }
             return r.json()
         })
@@ -82,58 +82,6 @@ export const fetchAccountingRecords = () => {
             })
         })
         .catch(e => dispatch(addException(stringifyException(e), RECEIVE_ACCOUNTING_RECORDS)))
-}
-export const RECEIVE_ACCOUNT_PLAN = 'RECEIVE_ACCOUNT_PLAN';
-export const fetchAccountPlan = () => {
-    return dispatch => failureAwareFetch("/account-plan") //TODO: use redux with state machine
-        .then(r => {
-            dispatch({
-                type: RECEIVE_ACCOUNT_PLAN,
-                value: r.slice(1)
-                    .reduce((a, account) => {
-                        a.set(account.konto_nr, account.name_kont)
-                        return a
-                    }, new Map())
-            })
-        })
-        .catch(e => dispatch(addException(stringifyException(e), RECEIVE_ACCOUNT_PLAN)))
-}
-
-export const RECEIVE_TAXES = 'RECEIVE_TAXES';
-export const fetchTaxes = () => {
-    return dispatch => failureAwareFetch("/taxes")
-        .then(r => dispatch({ type: RECEIVE_TAXES, value: r }))
-        .catch(e => dispatch(addException(stringifyException(e))))
-}
-
-export const SET_DEBIT_ACCOUNT = 'SET_DEBIT_ACCOUNT'
-export const setDebitAccount = newValue => {
-    return (dispatch, getState) => {
-        dispatch({
-            type: SET_DEBIT_ACCOUNT,
-            value: newValue
-        })
-        const { validations } = getState()
-        if (validations.debitAccount === undefined) {
-            dispatch(
-                fetchDebitBalance(newValue))
-        }
-    }
-}
-
-export const SET_CREDIT_ACCOUNT = 'SET_CREDIT_ACCOUNT'
-export const setCreditAccount = newValue => {
-    return (dispatch, getState) => {
-        const { validations } = getState()
-        dispatch({
-            type: SET_CREDIT_ACCOUNT,
-            value: newValue
-        })
-        if (validations.debitAccount === undefined) {
-            dispatch(
-                fetchCreditBalance(newValue))
-        }
-    }
 }
 
 export const CANCEL_EDITED_RECORD = 'CANCEL_EDITED_RECORD'
@@ -153,18 +101,19 @@ export const addException = e => {
     }
 }
 
-export const saveEditedRow = () => {
+export const saveEditedRow = formData => {
     return (dispatch, getState) => {
-        const { editedRecord } = getState()
+        const { editedPos } = getState()
         failureAwareFetch('/create-record', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(editedRecord)
+            body: JSON.stringify({ ...formData, pos: editedPos })
         }).then(r => {
             dispatch(fetchAccountingRecords())
             dispatch({ type: 'RECEIVE_SAVED_RECORD' })
+            //TODO: show success
         }).catch(e => dispatch(addException(stringifyException(e))))
     }
 }

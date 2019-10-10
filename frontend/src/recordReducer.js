@@ -1,12 +1,5 @@
-import validate from './validate'
-import { SET_DEBIT_ACCOUNT, SET_CREDIT_ACCOUNT, CANCEL_EDITED_RECORD } from './actions'
+import { CANCEL_EDITED_RECORD } from './actions'
 
-const validate2 = (editedRecord, taxes, accountPlan) => {
-    return validate(
-        editedRecord,
-        taxes.map(t => t.fasuch),
-        accountPlan)
-}
 const resetState = state => {
     return {
         ...state,
@@ -14,12 +7,6 @@ const resetState = state => {
         validations: {},
         creditBalance: undefined,
         debitBalance: undefined
-    }
-}
-const validateAndMerge = (editedRecord, taxes, accountPlan) => {
-    return {
-        validations: validate2(editedRecord, taxes, accountPlan),
-        editedRecord: editedRecord
     }
 }
 
@@ -31,7 +18,6 @@ const getRecord = (pos, accountingRecords) =>
     accountingRecords.find(e => pos === indexSelector(e))
 
 function recordReducer(state, action) {
-    console.log(action)
     switch (action.type) {
         case 'FETCH_INITIAL': {
             return {
@@ -95,7 +81,6 @@ function recordReducer(state, action) {
                     ...resettedRecordState,
                     editedPos: editRecord.pos,
                     editedRecord: editRecord,
-                    validations: validate2(editRecord, state.taxes, state.accountPlan)
                 }
             }
 
@@ -120,9 +105,8 @@ function recordReducer(state, action) {
                 return {
                     ...resetState(state),
                     editedRecord: newRecord0,
-                    validations: validate2(newRecord0, state.taxes, state.accountPlan),
                     balance: undefined,
-                    creditBalance: undefined
+                    creditBalance: undefined,
                 }
             }
         case CANCEL_EDITED_RECORD:
@@ -130,64 +114,13 @@ function recordReducer(state, action) {
                 ...resetState(state)
             }
 
-        case SET_DEBIT_ACCOUNT:
-            const newRecord = { ...state.editedRecord, debitAccount: action.value }
-            const validations = validate2(
-                newRecord,
-                state.taxes,
-                state.accountPlan)
-            return {
-                ...state,
-                editedRecord: newRecord,
-                validations
-            }
-        case SET_CREDIT_ACCOUNT:
-            const newRecord2 = { ...state.editedRecord, creditAccount: action.value }
-            const validations2 = validate2(
-                newRecord2,
-                state.taxes,
-                state.accountPlan)
-            return {
-                ...state,
-                editedRecord: newRecord2,
-                validations: validations2
-            }
+
         case 'SET_EDITED_POS': {
             return {
                 ...state,
                 editedPos: action.value
             }
         }
-        case 'SET_DATE':
-            return {
-                ...state,
-                ...validateAndMerge({ ...state.editedRecord, date: action.value },
-                    state.taxes, state.accountPlan)
-            }
-        case 'SET_ACCOUNTED_DATE':
-            return {
-                ...state,
-                ...validateAndMerge({ ...state.editedRecord, accountedDate: action.value },
-                    state.taxes, state.accountPlan)
-            }
-        case 'SET_SUM':
-            return {
-                ...state,
-                ...validateAndMerge({ ...state.editedRecord, sum: action.value },
-                    state.taxes, state.accountPlan)
-            }
-        case 'SET_TEXT':
-            return {
-                ...state,
-                ...validateAndMerge({ ...state.editedRecord, text: action.value },
-                    state.taxes, state.accountPlan)
-            }
-        case 'SET_TAX':
-            return {
-                ...state,
-                ...validateAndMerge({ ...state.editedRecord, tax: action.value },
-                    state.taxes, state.accountPlan)
-            }
 
         case 'SET_EXCEPTION':
             return {

@@ -1,23 +1,21 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
-import { InputWithValidation, Emphasize } from './UIComponents'
+import React, { forwardRef } from 'react'
+import { ValidationText } from './LabeledInput'
+import EmphasizableInput from './EmphasizableInput'
 
 function DateInput(props, ref) {
-    const inputRef = useRef(null)
-    useImperativeHandle(ref, () => ({
-        focus: () => {
-            inputRef.current.focus();
-        }
-    }));
 
-    return <><InputWithValidation
+    return <><EmphasizableInput
         rows={1}
-        ref={inputRef}
         {...props}
+        emphasize={props.validationMsg}
+        ref={ref}
         placeholder='dd.mm.yyyy'
         value={props.value}
         type='date'
     />
-        <Emphasize>{props.validationMsg && '\u26A0'}</Emphasize>
+        {props.validationMsg && <ValidationText
+            text={props.validationMsg.message}
+        />}
     </>
 }
 export default forwardRef(DateInput);

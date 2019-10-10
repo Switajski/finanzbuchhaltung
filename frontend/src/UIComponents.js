@@ -60,26 +60,6 @@ overflow:scroll;
 padding:0 20px 0 20px;
 height:100%`
 
-export const Input = styled.input`
-color: ${props => props.theme.variable};
-background-color: ${props => props.theme.variableBg};
-border: none;
-margin-left: 10px;
-&:focus {
-    color: ${props => props.theme.active};
-    background-color: ${props => props.theme.activeBg};
-    border:none;
-}`
-export const InputWithValidation = styled(Input)`
-${props => props.validationMsg && 'background-color:' + props.theme.emphasize + ';'}`
-
-Input.defaultProps = {
-    theme: {
-        inputBg: "white",
-        input: "black"
-    }
-}
-
 export const Hr = styled.hr`
 margin:0;
 border:0.5px solid;`
@@ -97,4 +77,8 @@ export function StatusHeader(props) {
             <Cell>laufende Buchung</Cell>
         </Grid>
     </Padding>
+}
+
+export function HorSpacer(props) {
+    return <>&nbsp; &nbsp;</>
 }

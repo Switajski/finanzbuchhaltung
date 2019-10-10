@@ -1,23 +1,17 @@
-import React from 'react'
+import React, { forwardRef } from 'react'
 import styled from 'styled-components'
+import EmphasizableInput from './EmphasizableInput'
 
-const StyledInput = styled.input`
-color: ${props => props.theme.variable};
-background-color: ${props => props.theme.variableBg};
-border:none;
-text-align:right;
-margin-left: 10px;
-&:focus {
-    color: ${props => props.theme.active};
-    background-color: ${props => props.theme.activeBg};
-    border:none;
-}`
+const InputAlignedRight = styled(EmphasizableInput)`
+text-align:right;`
 
 function CurrencyInput(props, ref) {
 
-    return <StyledInput
+    return <InputAlignedRight
         {...props}
+        emphasize={props.validationMsg}
+        ref={ref}
         type='number'
-        step='any' />;
+        step='any' />
 }
-export default CurrencyInput;
+export default forwardRef(CurrencyInput);
