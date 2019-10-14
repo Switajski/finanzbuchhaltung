@@ -24,23 +24,43 @@ export const indexSelector = r => parseInt(r.pos)
 const toDomString = d => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`
 
 function App() {
-  const [editedPos, setEditedPos] = useState(0)
-  const [dirty, setDirty] = useState(false)
+  const [positionNr, setPositionNr] = useState(0)
   const [recordTemplate, setRecordTemplate] = useState()
+  const [dirty, setDirty] = useState(false)
   const selectMode = recordTemplate === undefined
   const editMode = !selectMode
 
   const { accountingRecords, arMessages, saveAccountingRecord } = useAccountingRecords(indexSelector, dirty)
 
+  /** cancel on ESC */
   const cancel = () => setRecordTemplate(undefined)
+  useKey(() => cancel(), { detectKeys: [27] });
 
+  /** select accounting record from table for editing */
   useEffect(() => {
     if (accountingRecords.size > 0) {
       const firstAr = accountingRecords.values().next().value
-      setEditedPos(indexSelector(firstAr) + 1)
+      setPositionNr(indexSelector(firstAr) + 1)
     }
   }, [accountingRecords, dirty])
+  function selectPosition(pos) {
+    const newPos = accountingRecords.keys().next().value + 1
+    if (pos === newPos) {
+      const defaultDate = accountingRecords.size > 0 ? accountingRecords.values().next().value.date : toDomString(new Date())
+      setRecordTemplate({
+        date: defaultDate,
+        accountedDate: defaultDate
+      })
+    } else if (accountingRecords.has(pos)) {
+      if (pos !== positionNr)
+        setPositionNr(pos)
+      setRecordTemplate({ ...accountingRecords.get(pos) })
+    } else {
+      alert.info(`Position ${pos} nicht erlaubt.`)
+    }
+  }
 
+  /** alerting on errors and success */
   const alert = useAlert()
   useEffect(() => {
     if (arMessages && arMessages.length > 0) {
@@ -57,50 +77,27 @@ function App() {
     }
   }, [arMessages])
 
-  function selectPos(pos) {
-    const newPos = accountingRecords.keys().next().value + 1
-    if (pos === newPos) {
-      const defaultDate = accountingRecords.size > 0 ? accountingRecords.values().next().value.date : toDomString(new Date())
-      setRecordTemplate({
-        date: defaultDate,
-        accountedDate: defaultDate
-      })
-    } else if (accountingRecords.has(pos)) {
-      if (pos !== editedPos)
-        setEditedPos(pos)
-      setRecordTemplate({ ...accountingRecords.get(pos) })
-    } else {
-      alert.info(`Position ${pos} nicht erlaubt.`)
-    }
-  }
-
-  useKey((pressedKey) => {
-    cancel()
-  }, {
-    detectKeys: [27]
-  });
-
   return (
     <ThemeProvider theme={clipperTheme}>
       <Screen>
         <Header />
         <Content>
           <StatusHeader mode={selectMode ? '' :
-            (accountingRecords.has(editedPos) ? 'korrigiere' : 'neue')} />
+            (accountingRecords.has(positionNr) ? 'korrigiere' : 'neue')} />
           <Hr />
           {selectMode && <PositionSelectInputForm
             autoFocus
             label='Position Nr.'
             size={6}
-            value={editedPos}
-            onSubmit={() => selectPos(editedPos)}
-            pos={editedPos}
-            onChange={setEditedPos}
+            value={positionNr}
+            onSubmit={() => selectPosition(positionNr)}
+            pos={positionNr}
+            onChange={setPositionNr}
           />}
           {editMode && <AccountingRecordForm
             onSubmit={saveAccountingRecord}
             cancel={cancel}
-            pos={editedPos}
+            pos={positionNr}
             defaultValues={recordTemplate}
           />}
           <Hr />
@@ -115,7 +112,7 @@ function App() {
             ]}
               values={accountingRecords}
               keySelector={indexSelector}
-              onRowClick={v => selectPos(indexSelector(v))} />
+              onRowClick={v => selectPosition(indexSelector(v))} />
           </Scrollable>
         </Content>
       </Screen>

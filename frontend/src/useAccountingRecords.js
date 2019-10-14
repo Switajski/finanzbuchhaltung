@@ -37,7 +37,8 @@ function useAccountingRecords(indexSelector, dirty) {
     function saveAccountingRecord(accountingRecord) {
         const createAr = async () => {
             try {
-                await failureAwareFetch('/create-record', {
+                const url = accountingRecords.has(indexSelector(accountingRecord)) ? '/create-record' : '/update-record'
+                await failureAwareFetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

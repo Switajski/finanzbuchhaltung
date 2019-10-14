@@ -27,6 +27,7 @@ function AccountingRecordForm(props) {
     const { handleSubmit, register, errors, reset } = useForm({
         defaultValues: props.defaultValues
     });
+
     useEffect(() => reset(props.defaultValues), [props.defaultValues])
 
     const [creditAccount, setCreditAccount] = useState()
