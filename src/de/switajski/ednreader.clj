@@ -6,7 +6,7 @@
   "Load edn from an io/reader source (filename or io/resource)."
   [source]
   (try
-    (with-open [reader (io/reader (io/resource source))]
+    (with-open [reader (io/reader source)]
       (edn/read (java.io.PushbackReader. reader)))
 
     (catch java.io.IOException e

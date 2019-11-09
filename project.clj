@@ -9,7 +9,7 @@
                  [nl.knaw.dans.common/dans-dbf-lib "1.0.0-beta-10"]
                  [org.clojure/data.json "0.2.6"]]
   :plugins [[lein-ring "0.12.5"]]
-  :ring {:handler de.switajski.fibu.handler/app
+  :ring {:handler de.switajski.fibu.handler
          :port    4000
          :nrepl   {:start? true}}
   :profiles

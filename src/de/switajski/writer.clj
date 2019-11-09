@@ -87,13 +87,14 @@
     [a b c]))
 
 (defn add-record-with-dans [file record]
-  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. (.toURI (jio/resource file))))]
+  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. file))]
     (try (.open table)
          (.addRecord table record)
          (finally (.close table)))))
 
 (defn edit-record-with-dans [file record]
-  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. (.toURI (jio/resource file))))]
+  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. file))
+        x (print "asdfasdfasdf")]
     (try (.open table)
          (.updateRecordAt table (:pos record) record)
          (finally (.close table)))))

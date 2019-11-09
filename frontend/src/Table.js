@@ -33,9 +33,9 @@ function Table(props) {
         <tbody>
             {Array.from(props.values, ([k, v]) => v).map(r =>
                 <TrWithHover onClick={() => props.onRowClick(r)}
-                    key={() => props.keySelector(r)}>
+                    key={props.keySelector(r)}>
                     {props.attributes.map((att, i) => att.number
-                        ? <NumberCell value={att.selector(r)} key={() => props.keySelector(r)} />
+                        ? <NumberCell value={att.selector(r)} key={i} />
                         : <td key={i}>{att.selector(r)}</td>
                     )}
                 </TrWithHover>

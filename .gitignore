@@ -8,5 +8,6 @@ pom.xml.asc
 *.jar
 *.class
 *.dbf
+*.edn
 /.lein-*
 /.nrepl-port

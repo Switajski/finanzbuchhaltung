@@ -42,13 +42,13 @@ border:0.5px solid;`
 export const Padding = styled.div`
 padding: 5px 20px 5px 20px;`
 
+const RightAlignedCell = styled(Cell)`text-align:right;`
+
 export function StatusHeader(props) {
     return <Padding>
         <Grid columns={3}>
             <Cell>FIBU 2.1</Cell>
-            <Cell ><Emphasize>
-                {props.mode}
-            </Emphasize></Cell>
+            <RightAlignedCell><Emphasize>{props.mode} &nbsp;</Emphasize></RightAlignedCell>
             <Cell>laufende Buchung</Cell>
         </Grid>
     </Padding>

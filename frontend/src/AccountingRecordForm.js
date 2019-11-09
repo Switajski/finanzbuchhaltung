@@ -28,7 +28,7 @@ function AccountingRecordForm(props) {
         defaultValues: props.defaultValues
     });
 
-    useEffect(() => reset(props.defaultValues), [props.defaultValues])
+    useEffect(() => reset(props.defaultValues), [props.defaultValues, reset])
 
     const [creditAccount, setCreditAccount] = useState()
     const [debitAccount, setDebitAccount] = useState()
