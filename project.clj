@@ -3,13 +3,16 @@
   :url "https://finanzbuchhaltung.switajski.de"
   :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [compojure "1.6.1"]
+                 [ring/ring-core "1.7.1"]
+                 [ring/ring-jetty-adapter "1.7.1"]
                  [ring/ring-json "0.3.1"]
                  [ring/ring-defaults "0.3.2"]
+                 [compojure "1.6.1"]
                  [nl.knaw.dans.common/dans-dbf-lib "1.0.0-beta-10"]
                  [org.clojure/data.json "0.2.6"]]
   :plugins [[lein-ring "0.12.5"]]
-  :ring {:handler de.switajski.fibu.handler
+  :main de.switajski.fibu.handler
+  :ring {:handler de.switajski.fibu.handler/app
          :port    4000
          :nrepl   {:start? true}}
   :profiles

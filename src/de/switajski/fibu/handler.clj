@@ -1,4 +1,5 @@
 (ns de.switajski.fibu.handler
+  (:use ring.adapter.jetty)
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
@@ -130,3 +131,6 @@
       middleware/wrap-json-response
       wrap-runtime-exception-handling))
 
+(defn -main
+  [& args]
+  (run-jetty app {:port 3333}))
