@@ -1,10 +1,12 @@
 (ns de.switajski.fibu.handler
-  (:use ring.adapter.jetty)
+  (:use ring.adapter.jetty
+        ring.middleware.resource
+        ring.middleware.content-type
+        ring.middleware.not-modified)
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
             [ring.middleware.params :as params-middleware]
-            [ring.middleware.file :as static]
             [compojure.route :as route]
             [de.switajski.dbf :as dbf]
             [de.switajski.writer :refer :all]
@@ -123,11 +125,21 @@
                        "\"status\":500"
                        "}")}))))
 
+(defn wrap-dir-index [handler]
+  (fn [req]
+    (handler
+      (update-in req [:uri]
+                 #(if (= "/" %) "/index.html" %)))))
+
 (def app
-  (-> (handler/api app-routes)
+  (-> app-routes
+      (wrap-resource "public/build")
+      (wrap-content-type)
+      (wrap-not-modified)
+      (wrap-dir-index)
+      (handler/api)
       (middleware/wrap-json-body {:keywords? true})
       (params-middleware/wrap-params)
-      (static/wrap-file "frontend/build")
       middleware/wrap-json-response
       wrap-runtime-exception-handling))
 

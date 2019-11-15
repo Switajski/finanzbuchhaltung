@@ -26,7 +26,7 @@ To start a web server for the application, run:
     
 To start the frontend, run:
 
-    cd frontend
+    cd resources/public
     yarn install
     yarn start
 

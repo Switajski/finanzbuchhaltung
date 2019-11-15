@@ -3,6 +3,7 @@
 /classes
 /checkouts
 /.idea
+/temp
 pom.xml
 pom.xml.asc
 *.jar
