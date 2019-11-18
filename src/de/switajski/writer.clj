@@ -1,6 +1,8 @@
 (ns de.switajski.writer
-  (:import (java.math RoundingMode))
-  (:require [clojure.java.io :as jio])
+  (:import (java.math RoundingMode)
+           (nl.knaw.dans.common.dbflib Table)
+           (nl.knaw.dans.common.dbflib Record))
+  (:require [clojure.string :as string])
   (:gen-class))
 
 (def order-of-dbf-record-values [:art
@@ -40,10 +42,10 @@
     (map #((keyword %) record) ordered-keys))
   (map #(vec (order-values % order-of-dbf-record-values)) records))
 
-(defn generate-accounting-records [f account-config taxes
-                                   & {:keys [date-parser number-parser]
-                                      :or   {date-parser   to-java-util-date
-                                             number-parser to-java-double}}]
+(defn generate-records-for-dbf [f account-config taxes
+                                & {:keys [date-parser number-parser]
+                                   :or   {date-parser   to-java-util-date
+                                          number-parser to-java-double}}]
   (let [d {:art      "V"
            :dat      (date-parser (:date f))
            :rech_nr  (number-parser (:pos f))
@@ -86,15 +88,31 @@
         ]
     [a b c]))
 
-(defn add-record-with-dans [file record]
-  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. file))]
+(defn find-unique-record [table rech_nr datensatz]
+  (->> (.recordIterator table)
+       iterator-seq
+       (filter #(= 0 (compare (.getNumberValue % "RECH_NR") rech_nr)))
+       (filter #(= datensatz (.getStringValue % "DATENSATZ")))))
+
+(defn transform-for-dans-dbf [map table]
+  (into {}
+        (for [[k v] map]
+          [(subs (string/upper-case k) 1) (.createValueObject table v)])))
+
+(defn add-record-with-dans
+  "record should be a ordered list of values. Order should be the same as in dbf format"
+  [file record]
+  (let [table (Table. (java.io.File. file))]
     (try (.open table)
-         (.addRecord table record)
+         (.addRecord table record)                          ;TODO also feasible with addRecord(Record), which doesn't need order
          (finally (.close table)))))
 
-(defn edit-record-with-dans [file record]
-  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. file))
-        x (print "asdfasdfasdf")]
+(defn edit-record-with-dans
+  "record should be a map"
+  [file record index]
+  (let [table (Table. (java.io.File. file))]
     (try (.open table)
-         (.updateRecordAt table (:pos record) record)
+         (.updateRecordAt table
+                          index
+                          (Record. (java.util.HashMap. (transform-for-dans-dbf record table))))
          (finally (.close table)))))

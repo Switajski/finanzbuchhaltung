@@ -10,6 +10,7 @@
             [compojure.route :as route]
             [de.switajski.dbf :as dbf]
             [de.switajski.writer :refer :all]
+            [de.switajski.fibu.writer :refer :all]
             [de.switajski.ednreader :as edn]
             [clojure.java.io :as jio]
             [clojure.data.json :as json]
@@ -31,6 +32,13 @@
    :accountedDate (:bdatum r)
    :tax           (:vmsteuer r)
    :datensatz     (:datensatz r)})
+
+(defn to-dbf-records [record-from-ui]
+  (to-list-of-values
+    (generate-records-for-dbf
+      record-from-ui
+      (edn/read "account-config.edn")
+      (edn/read "taxes.edn"))))
 
 (defn stream!
   [in-file & {:keys [transform reader]
@@ -89,24 +97,23 @@
            (GET "/taxes" []
              {:status 200
               :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file
-           (POST "/create-record" json
-             (doseq [record (to-list-of-values
-                              (generate-accounting-records
-                                (:body json)
-                                (edn/read "account-config.edn")
-                                (edn/read "taxes.edn")))]
+           (POST "/create-record" req
+             (doseq [record (to-dbf-records (:body req))]
                (add-record-with-dans buchen-file (into-array Object record)))
              {:status 200
-              :body   json})
-           (POST "/update-record" json
-             (doseq [record (to-list-of-values
-                              (generate-accounting-records
-                                (:body json)
-                                (edn/read "account-config.edn")
-                                (edn/read "taxes.edn")))]
-               (edit-record-with-dans buchen-file (into-array Object record)))
-             {:status 200
-              :body   json})
+              :body   (:body req)})
+           (POST "/update-record" req
+             (let [rec-map (:body req)]
+               (doseq [record-in-dbf (generate-records-for-dbf
+                                       (:body req)
+                                       (edn/read "account-config.edn")
+                                       (edn/read "taxes.edn"))]
+                 (edit-record-with-dans
+                   buchen-file
+                   record-in-dbf
+                   (calculate-index (:rech_nr record-in-dbf) (:datensatz record-in-dbf))))
+               {:status 200
+                :body   rec-map}))
 
            (route/not-found " Not Found"))
 

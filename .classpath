@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+  <classpathentry kind="src" path="test" output="target/test-classes" including="**/*.java"/>
+  <classpathentry kind="src" path="src" including="**/*.java"/>
+  <classpathentry kind="src" path="resources" excluding="**/*.java"/>
+  <classpathentry kind="output" path="target/classes"/>
+  <classpathentry kind="var" path="M2_REPO/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar" sourcepath="M2_REPO/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar" sourcepath="M2_REPO/javax/servlet/servlet-api/2.5/servlet-api-2.5-sources.jar"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="var" path="M2_REPO/org/clojure/clojure/1.10.0/clojure-1.10.0.jar" sourcepath="M2_REPO/org/clojure/clojure/1.10.0/clojure-1.10.0-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/clojure/spec.alpha/0.2.176/spec.alpha-0.2.176.jar" sourcepath="M2_REPO/org/clojure/spec.alpha/0.2.176/spec.alpha-0.2.176-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/clojure/core.specs.alpha/0.2.44/core.specs.alpha-0.2.44.jar" sourcepath="M2_REPO/org/clojure/core.specs.alpha/0.2.44/core.specs.alpha-0.2.44-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-core/1.7.1/ring-core-1.7.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-codec/1.1.1/ring-codec-1.1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.11/commons-codec-1.11.jar" sourcepath="M2_REPO/commons-codec/commons-codec/1.11/commons-codec-1.11-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-io/commons-io/2.6/commons-io-2.6.jar" sourcepath="M2_REPO/commons-io/commons-io/2.6/commons-io-2.6-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-fileupload/commons-fileupload/1.3.3/commons-fileupload-1.3.3.jar" sourcepath="M2_REPO/commons-fileupload/commons-fileupload/1.3.3/commons-fileupload-1.3.3-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/clj-time/clj-time/0.14.3/clj-time-0.14.3.jar"/>
+  <classpathentry kind="var" path="M2_REPO/joda-time/joda-time/2.9.9/joda-time-2.9.9.jar" sourcepath="M2_REPO/joda-time/joda-time/2.9.9/joda-time-2.9.9-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/crypto-random/crypto-random/1.2.0/crypto-random-1.2.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/crypto-equality/crypto-equality/1.0.0/crypto-equality-1.0.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-jetty-adapter/1.7.1/ring-jetty-adapter-1.7.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-servlet/1.7.1/ring-servlet-1.7.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/eclipse/jetty/jetty-server/9.4.12.v20180830/jetty-server-9.4.12.v20180830.jar" sourcepath="M2_REPO/org/eclipse/jetty/jetty-server/9.4.12.v20180830/jetty-server-9.4.12.v20180830-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/eclipse/jetty/jetty-http/9.4.12.v20180830/jetty-http-9.4.12.v20180830.jar" sourcepath="M2_REPO/org/eclipse/jetty/jetty-http/9.4.12.v20180830/jetty-http-9.4.12.v20180830-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/eclipse/jetty/jetty-util/9.4.12.v20180830/jetty-util-9.4.12.v20180830.jar" sourcepath="M2_REPO/org/eclipse/jetty/jetty-util/9.4.12.v20180830/jetty-util-9.4.12.v20180830-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/eclipse/jetty/jetty-io/9.4.12.v20180830/jetty-io-9.4.12.v20180830.jar" sourcepath="M2_REPO/org/eclipse/jetty/jetty-io/9.4.12.v20180830/jetty-io-9.4.12.v20180830-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-json/0.3.1/ring-json-0.3.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/cheshire/cheshire/5.3.1/cheshire-5.3.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/fasterxml/jackson/core/jackson-core/2.3.1/jackson-core-2.3.1.jar" sourcepath="M2_REPO/com/fasterxml/jackson/core/jackson-core/2.3.1/jackson-core-2.3.1-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/fasterxml/jackson/dataformat/jackson-dataformat-smile/2.3.1/jackson-dataformat-smile-2.3.1.jar" sourcepath="M2_REPO/com/fasterxml/jackson/dataformat/jackson-dataformat-smile/2.3.1/jackson-dataformat-smile-2.3.1-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/tigris/tigris/0.1.1/tigris-0.1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-defaults/0.3.2/ring-defaults-0.3.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-ssl/0.3.0/ring-ssl-0.3.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-headers/0.3.0/ring-headers-0.3.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-anti-forgery/1.3.0/ring-anti-forgery-1.3.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/hiccup/hiccup/1.0.5/hiccup-1.0.5.jar"/>
+  <classpathentry kind="var" path="M2_REPO/compojure/compojure/1.6.1/compojure-1.6.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/clojure/tools.macro/0.1.5/tools.macro-0.1.5.jar" sourcepath="M2_REPO/org/clojure/tools.macro/0.1.5/tools.macro-0.1.5-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/clout/clout/2.2.1/clout-2.2.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/instaparse/instaparse/1.4.8/instaparse-1.4.8.jar"/>
+  <classpathentry kind="var" path="M2_REPO/medley/medley/1.0.0/medley-1.0.0.jar"/>
+  <classpathentry kind="var" path="M2_REPO/nl/knaw/dans/common/dans-dbf-lib/1.0.0-beta-10/dans-dbf-lib-1.0.0-beta-10.jar"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar" sourcepath="M2_REPO/junit/junit/4.5/junit-4.5-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/clojure/data.json/0.2.6/data.json-0.2.6.jar" sourcepath="M2_REPO/org/clojure/data.json/0.2.6/data.json-0.2.6-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/ring/ring-mock/0.3.2/ring-mock-0.3.2.jar"/>
+</classpath>

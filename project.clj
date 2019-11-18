@@ -14,7 +14,9 @@
   :main de.switajski.fibu.handler
   :ring {:handler de.switajski.fibu.handler/app
          :port    4000
-         :nrepl   {:start? true}}
+         :nrepl   {:start? true :port 4001}}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                        [ring/ring-mock "0.3.2"]]}})
+                        [ring/ring-mock "0.3.2"]]}}
+  :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5010"] ;for debugging https://stackoverflow.com/questions/56300204/how-to-debug-a-clojure-web-application-in-intellij
+  )
