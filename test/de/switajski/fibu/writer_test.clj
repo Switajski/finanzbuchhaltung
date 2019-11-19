@@ -1,6 +1,5 @@
-(ns de.switajski.writer_test
+(ns de.switajski.fibu.writer_test
   (:require [clojure.test :refer :all]
-            [de.switajski.writer :refer :all]
             [de.switajski.fibu.writer :refer :all]
             [de.switajski.ednreader :as edn]))
 
@@ -28,7 +27,7 @@
    :tax           "VSt7%"})
 
 (deftest transform-from-json
-  (let [abc (generate-records-for-dbf
+  (let [abc (generate-3-records-for-dbf
               json-record
               (edn/read (str path "account-config.edn"))
               (edn/read (str path "taxes.edn")))]
@@ -38,21 +37,21 @@
     ))
 
 (deftest transform-from-endpoint-to-dbf-writer-format
-  (to-list-of-values (generate-records-for-dbf
+  (to-list-of-values (generate-3-records-for-dbf
                        json-record
                        (edn/read (str path "account-config.edn"))
                        (edn/read (str path "taxes.edn")))))
 
 (deftest write-records
   (doseq [record (to-list-of-values
-                   (generate-records-for-dbf
+                   (generate-3-records-for-dbf
                      json-record
                      (edn/read (str path "account-config.edn"))
                      (edn/read (str path "taxes.edn"))))]
     (add-record-with-dans (str path "13.dbf") (into-array Object record))))
 
 (deftest update-record
-  (doseq [record-in-dbf (generate-records-for-dbf
+  (doseq [record-in-dbf (generate-3-records-for-dbf
                           json-record
                           (edn/read (str path "account-config.edn"))
                           (edn/read (str path "taxes.edn")))]
@@ -60,12 +59,5 @@
       (str path "13.dbf")
       record-in-dbf
       (calculate-index (:rech_nr record-in-dbf) (:datensatz record-in-dbf)))))
-
-(deftest find-records
-  (let [table (nl.knaw.dans.common.dbflib.Table. (java.io.File. (str path "buchen.dbf")))]
-    (try (.open table)
-         (find-unique-record table 66 "A")
-         (finally (.close table))
-         )))
 
 (run-tests)

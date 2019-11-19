@@ -9,7 +9,6 @@
             [ring.middleware.params :as params-middleware]
             [compojure.route :as route]
             [de.switajski.dbf :as dbf]
-            [de.switajski.writer :refer :all]
             [de.switajski.fibu.writer :refer :all]
             [de.switajski.ednreader :as edn]
             [clojure.java.io :as jio]
@@ -32,13 +31,6 @@
    :accountedDate (:bdatum r)
    :tax           (:vmsteuer r)
    :datensatz     (:datensatz r)})
-
-(defn to-dbf-records [record-from-ui]
-  (to-list-of-values
-    (generate-records-for-dbf
-      record-from-ui
-      (edn/read "account-config.edn")
-      (edn/read "taxes.edn"))))
 
 (defn stream!
   [in-file & {:keys [transform reader]
@@ -98,20 +90,17 @@
              {:status 200
               :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file
            (POST "/create-record" req
-             (doseq [record (to-dbf-records (:body req))]
-               (add-record-with-dans buchen-file (into-array Object record)))
+             (doseq [record (generate-3-records-for-dbf (:body req))]
+               (add-record-with-dans buchen-file record))
              {:status 200
               :body   (:body req)})
            (POST "/update-record" req
              (let [rec-map (:body req)]
-               (doseq [record-in-dbf (generate-records-for-dbf
-                                       (:body req)
-                                       (edn/read "account-config.edn")
-                                       (edn/read "taxes.edn"))]
+               (doseq [record (generate-3-records-for-dbf (:body req))]
                  (edit-record-with-dans
                    buchen-file
-                   record-in-dbf
-                   (calculate-index (:rech_nr record-in-dbf) (:datensatz record-in-dbf))))
+                   record
+                   (calculate-index (:rech_nr record) (:datensatz record))))
                {:status 200
                 :body   rec-map}))
 
