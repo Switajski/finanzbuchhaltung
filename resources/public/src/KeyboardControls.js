@@ -5,7 +5,10 @@ import { Button as RootButton } from './UIComponents'
 
 const Button = styled(RootButton)`width:100%; 
 font-size:1em;`
-const SGrid = styled(Grid)`margin: 0 1px 0 1px;`
+const SGrid = styled(Grid)`margin: 0 1px 0 1px;
+@media print {
+    visibility: hidden;
+}`
 
 export default function KeyboardControls(props) {
     return <SGrid columns={5}>

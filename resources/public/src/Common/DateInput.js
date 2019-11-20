@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react'
-import { ValidationText } from './LabeledInput'
-import EmphasizableInput from './EmphasizableInput'
+import { ValidationText } from '../LaufendeBuchung/LabeledInput'
+import EmphasizableInput from '../LaufendeBuchung/EmphasizableInput'
 
 function DateInput(props, ref) {
 

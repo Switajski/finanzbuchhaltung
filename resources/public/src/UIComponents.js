@@ -21,7 +21,9 @@ export const Minorize = styled.span`
 color: ${props => props.theme.minor}`
 
 export const Screen = styled.div`
-height: 90vh;
+@media not print {
+    height: 90vh;
+}
 display: block;
 max-width: 1000px;
 margin-left:auto;

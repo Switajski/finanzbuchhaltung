@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+export const indexSelector = r => parseInt(r.pos)
+
 const failureAwareFetch = (url, opts) => {
     return fetch(url, opts)
         .then(r => {
@@ -13,7 +15,7 @@ function createSuccessMsgObj(msg) {
     return { title: 'success', message: msg }
 }
 
-function useAccountingRecords(indexSelector, dirty) {
+function useAccountingRecords(deps) {
     const [accountingRecords, setAccountingRecords] = useState(new Map())
     const [arMessages, setMessages] = useState([])
     useEffect(() => {
@@ -32,7 +34,7 @@ function useAccountingRecords(indexSelector, dirty) {
             }
         }
         fetchAccountingRecords()
-    }, [indexSelector, dirty])
+    }, deps)
 
     function saveAccountingRecord(accountingRecord) {
         const createAr = async () => {

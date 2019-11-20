@@ -3,15 +3,13 @@ import React, { useEffect, useState } from 'react'
 import { useAlert } from "react-alert";
 import useKey from 'use-key-hook'
 
-import useAccountingRecords from './useAccountingRecords'
+import useAccountingRecords, { indexSelector } from './useAccountingRecords'
 import PositionSelectInputForm from './PositionSelectForm'
 
 import { Hr, StatusHeader, Scrollable } from '../UIComponents'
 import Table from '../Table'
 
 import AccountingRecordForm from './AccountingRecordForm';
-
-export const indexSelector = r => parseInt(r.pos)
 
 /**
  * converts Date to standardized DOM string
@@ -27,7 +25,7 @@ function App() {
     const selectMode = recordTemplate === undefined
     const editMode = !selectMode
 
-    const { accountingRecords, arMessages, saveAccountingRecord } = useAccountingRecords(indexSelector, dirty)
+    const { accountingRecords, arMessages, saveAccountingRecord } = useAccountingRecords([indexSelector, dirty])
 
     /** cancel on ESC */
     const cancel = () => setRecordTemplate(undefined)

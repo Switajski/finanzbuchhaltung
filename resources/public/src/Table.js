@@ -31,7 +31,7 @@ function Table(props) {
             <tr>{props.attributes.map(att => <Th key={att.name}>{att.name}</Th>)}</tr>
         </Thead>
         <tbody>
-            {Array.from(props.values, ([k, v]) => v).map(r =>
+            {props.values && Array.from(props.values, ([k, v]) => v).map(r =>
                 <TrWithHover onClick={() => props.onRowClick(r)}
                     key={props.keySelector(r)}>
                     {props.attributes.map((att, i) => att.number

@@ -1,12 +1,9 @@
 import React, { useState } from 'react'
 import { Link, Redirect } from 'react-router-dom'
 import useKey from 'use-key-hook'
-import styled from 'styled-components'
 
 import { StatusHeader, Hr, Grid, Emphasize, Padding, Minorize } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
-
-const FullHeightPadding = styled(Padding)`display:flex;`
 
 function MenuEntry(props) {
     return <li>{props.index && `[${props.index}] `}
@@ -24,15 +21,13 @@ function MenuBlock(props) {
 
 function HauptMenue() {
     const [redirect, setRedirect] = useState()
+    useKey(() => setRedirect('/kontenabfrage'), { detectKeys: ['6'] })
     useKey(() => setRedirect('/laufende-buchung'), { detectKeys: ['9'] })
     return redirect ? <Redirect to={redirect} /> : <>
         <StatusHeader right='Hauptmenue' />
         <Hr />
         <Padding>
-            <Grid columns={6}
-            // justifyContent='center'
-            // alignContent='center'
-            >
+            <Grid columns={6}>
                 <Cell />
                 <Cell width={2} >
                     <MenuBlock name='Stammdaten'>
@@ -43,14 +38,14 @@ function HauptMenue() {
                     </MenuBlock>
                     <MenuBlock name='Ausdruck'>
                         <MenuEntry index={5}>Journal</MenuEntry>
-                        <MenuEntry index={6}>Konto</MenuEntry>
+                        <MenuEntry index={6} to='/kontenabfrage'>Kontenabfrage</MenuEntry>
                         <MenuEntry index={7}>Konten - Saldo</MenuEntry>
                         <MenuEntry index={8}>Konten - Plan</MenuEntry>
                     </MenuBlock>
                 </Cell>
                 <Cell width={2}>
                     <MenuBlock name='Laufende Verarbeitung'>
-                        <MenuEntry to="/laufende-buchung" index={9}>Laufende Buchung</MenuEntry>
+                        <MenuEntry index={9} to="/laufende-buchung">Laufende Buchung</MenuEntry>
                     </MenuBlock>
                     <MenuBlock name='Offene-Posten-Auswertungen'>
                         <MenuEntry index={10}>Kunde</MenuEntry>

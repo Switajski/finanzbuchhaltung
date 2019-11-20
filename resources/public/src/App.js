@@ -10,6 +10,7 @@ import clipperTheme from './clipperTheme'
 import './App.css';
 import LaufendeBuchung from './LaufendeBuchung'
 import HauptMenue from './HauptMenue';
+import Kontenabfrage from './Kontenabfrage'
 
 import Header from './Header'
 import { Screen, Content } from './UIComponents'
@@ -23,14 +24,9 @@ function App() {
           <Header />
           <Content>
             <Switch>
-              {/* A <Switch> looks through its children <Route>s and
-            renders the first one that matches the current URL. */}
-              <Route path="/laufende-buchung">
-                <LaufendeBuchung />
-              </Route>
-              <Route path="/">
-                <HauptMenue />
-              </Route>
+              <Route path="/laufende-buchung"><LaufendeBuchung /></Route>
+              <Route path='/kontenabfrage'><Kontenabfrage /></Route>
+              <Route path="/"><HauptMenue /></Route>
             </Switch>
           </Content>
         </Screen>

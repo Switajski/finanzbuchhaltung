@@ -10,7 +10,7 @@ import useBalance from './useBalance'
 import LabeledInput from './LabeledInput'
 import TextInput from './TextInput'
 import CurrencyInput from './CurrencyInput'
-import DateInput from './DateInput'
+import DateInput from '../Common/DateInput'
 import Select from './Select'
 
 const INVALID_ACCOUNT_MSG = 'Konto ex. nicht'
