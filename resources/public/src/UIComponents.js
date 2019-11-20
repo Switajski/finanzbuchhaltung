@@ -17,6 +17,9 @@ border: 0;`
 export const Emphasize = styled.span`
 color: ${props => props.theme.emphasize}`
 
+export const Minorize = styled.span`
+color: ${props => props.theme.minor}`
+
 export const Screen = styled.div`
 height: 90vh;
 display: block;
@@ -48,8 +51,8 @@ export function StatusHeader(props) {
     return <Padding>
         <Grid columns={3}>
             <Cell>FIBU 2.1</Cell>
-            <RightAlignedCell><Emphasize>{props.mode} &nbsp;</Emphasize></RightAlignedCell>
-            <Cell>laufende Buchung</Cell>
+            <RightAlignedCell><Emphasize>{props.middle} &nbsp;</Emphasize></RightAlignedCell>
+            <Cell>{props.right}</Cell>
         </Grid>
     </Padding>
 }

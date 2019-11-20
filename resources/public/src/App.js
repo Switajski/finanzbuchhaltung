@@ -1,121 +1,40 @@
-import React, { useEffect, useState } from 'react'
-import { ThemeProvider } from 'styled-components'
-import { useAlert } from "react-alert";
-import useKey from 'use-key-hook'
+import React from 'react'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from "react-router-dom";
 
-import useAccountingRecords from './useAccountingRecords'
-import PositionSelectInputForm from './PositionSelectForm'
+import { ThemeProvider } from 'styled-components'
+import clipperTheme from './clipperTheme'
+import './App.css';
+import LaufendeBuchung from './LaufendeBuchung'
+import HauptMenue from './HauptMenue';
 
 import Header from './Header'
-import clipperTheme from './clipperTheme'
-import { Hr, StatusHeader, Screen, Scrollable, Content } from './UIComponents'
-import Table from './Table'
-import './App.css';
-
-import AccountingRecordForm from './AccountingRecordForm';
-
-export const indexSelector = r => parseInt(r.pos)
-
-/**
- * converts Date to standardized DOM string
- * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
- * @param {Date} d 
- */
-const toDomString = d => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`
+import { Screen, Content } from './UIComponents'
 
 function App() {
-  const [positionNr, setPositionNr] = useState(0)
-  const [recordTemplate, setRecordTemplate] = useState()
-  const [dirty, setDirty] = useState(false)
-  const selectMode = recordTemplate === undefined
-  const editMode = !selectMode
-
-  const { accountingRecords, arMessages, saveAccountingRecord } = useAccountingRecords(indexSelector, dirty)
-
-  /** cancel on ESC */
-  const cancel = () => setRecordTemplate(undefined)
-  useKey(() => cancel(), { detectKeys: [27] });
-
-  /** select accounting record from table for editing */
-  useEffect(() => {
-    if (accountingRecords.size > 0) {
-      const firstAr = accountingRecords.values().next().value
-      setPositionNr(indexSelector(firstAr) + 1)
-    }
-  }, [accountingRecords, dirty])
-  function selectPosition(pos) {
-    const newPos = accountingRecords.keys().next().value + 1
-    if (pos === newPos) {
-      const defaultDate = accountingRecords.size > 0 ? accountingRecords.values().next().value.date : toDomString(new Date())
-      setRecordTemplate({
-        date: defaultDate,
-        accountedDate: defaultDate
-      })
-    } else if (accountingRecords.has(pos)) {
-      if (pos !== positionNr)
-        setPositionNr(pos)
-      setRecordTemplate({ ...accountingRecords.get(pos) })
-    } else {
-      alert.info(`Position ${pos} nicht erlaubt.`)
-    }
-  }
-
-  /** alerting on errors and success */
-  const alert = useAlert()
-  useEffect(() => {
-    if (arMessages && arMessages.length > 0) {
-      const newMessage = arMessages[arMessages.length - 1]
-      if (newMessage instanceof Error) {
-        alert.error(newMessage.message)
-      } else if (newMessage.title && newMessage.title === 'success') {
-        // TODO: create contract for that -  do that in a place that has control over the transaction - it's somehow an effect
-        // perhaps with prop formState.isSubmitted from react-hook-form?
-        alert.success(newMessage.message)
-        cancel()
-        setDirty(!dirty)
-      } else alert.info(newMessage.message)
-    }
-  }, [arMessages])
 
   return (
     <ThemeProvider theme={clipperTheme}>
-      <Screen>
-        <Header />
-        <Content>
-          <StatusHeader mode={selectMode ? '' :
-            (accountingRecords.has(positionNr) ? 'korrigiere' : 'neue')} />
-          <Hr />
-          {selectMode && <PositionSelectInputForm
-            autoFocus
-            label='Position Nr.'
-            size={6}
-            value={positionNr}
-            onSubmit={() => selectPosition(positionNr)}
-            pos={positionNr}
-            onChange={setPositionNr}
-          />}
-          {editMode && <AccountingRecordForm
-            onSubmit={saveAccountingRecord}
-            cancel={cancel}
-            pos={positionNr}
-            defaultValues={recordTemplate}
-          />}
-          <Hr />
-          <Scrollable>
-            <Table attributes={[
-              { name: "Pos.", selector: r => r.pos },
-              { name: "Datum", selector: r => r.date },
-              { name: "Soll", selector: r => r.debitAccount },
-              { name: "Haben", selector: r => r.creditAccount },
-              { name: "Summe", selector: r => r.sum, number: true },
-              { name: "Text", selector: r => r.text }
-            ]}
-              values={accountingRecords}
-              keySelector={indexSelector}
-              onRowClick={v => selectPosition(indexSelector(v))} />
-          </Scrollable>
-        </Content>
-      </Screen>
+      <Router>
+        <Screen>
+          <Header />
+          <Content>
+            <Switch>
+              {/* A <Switch> looks through its children <Route>s and
+            renders the first one that matches the current URL. */}
+              <Route path="/laufende-buchung">
+                <LaufendeBuchung />
+              </Route>
+              <Route path="/">
+                <HauptMenue />
+              </Route>
+            </Switch>
+          </Content>
+        </Screen>
+      </Router>
     </ThemeProvider >
   );
 }

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import useForm from "react-hook-form";
-import KeyboardControls, { KeyButton } from './KeyboardControls'
-import { Padding, Grid, Emphasize, HorSpacer } from './UIComponents'
+import KeyboardControls, { KeyButton } from '../KeyboardControls'
+import { Padding, Grid, Emphasize, HorSpacer } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
 
 import useAccountPlan from './useAccountPlan'
@@ -160,11 +160,11 @@ function AccountingRecordForm(props) {
             <KeyButton />
             <KeyButton
                 active
-                text='TAB: naechstes Eingabefeld'
+                text='&#8633; : naechstes Feld'
             />
             <KeyButton
                 active
-                text='Enter: speichern'
+                text='&#8617; : speichern'
                 type='submit'
             />
         </KeyboardControls>

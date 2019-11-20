@@ -19,6 +19,14 @@ li.is-focused {
   background-color: rgb(0,110,107);
 }
 
+a { 
+  color: rgb(179,179,179);
+  text-decoration: none;
+}
+a:hover {
+  color: rgb(253,255,0);
+}
+
 ul {
   padding: 0;
 }

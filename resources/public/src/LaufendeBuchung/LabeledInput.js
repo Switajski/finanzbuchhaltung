@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react'
 import styled from 'styled-components'
 
-import { Emphasize } from './UIComponents'
+import { Emphasize } from '../UIComponents'
 
 const Small = styled.span`font-size:smaller`
 
