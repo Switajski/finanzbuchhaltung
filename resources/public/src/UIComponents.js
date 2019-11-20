@@ -30,13 +30,15 @@ margin-top: 1em;`
 
 export const Content = styled.div`
 height: 100%;
+display: flex;
+flex-flow: column;
 overflow:hidden;
 border: 1px solid;`
 
 export const Scrollable = styled.div`
 overflow:scroll;
 padding:0 20px 0 20px;
-height:100%`
+flex-grow : 1;`
 
 export const Hr = styled.hr`
 margin:0;
