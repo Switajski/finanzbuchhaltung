@@ -27,11 +27,11 @@ const useBalance = ({ accountPlan, debitAccount, creditAccount }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (accountPlan.has(debitAccount)) {
+                if (accountPlan[debitAccount]) {
                     const r = await fetchBalance(debitAccount)
                     setDebitBalance(r.sum)
                 } else setDebitBalance(undefined)
-                if (accountPlan.has(creditAccount)) {
+                if (accountPlan[creditAccount]) {
                     const r = await fetchBalance(creditAccount)
                     setCreditBalance(r.sum)
                 } else setCreditBalance(undefined)

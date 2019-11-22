@@ -4,7 +4,6 @@ import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import { Padding, Grid, Emphasize, HorSpacer } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
 
-import useAccountPlan from './useAccountPlan'
 import useBalance from './useBalance'
 
 import LabeledInput from './LabeledInput'
@@ -12,6 +11,7 @@ import TextInput from './TextInput'
 import CurrencyInput from './CurrencyInput'
 import DateInput from '../Common/DateInput'
 import Select from './Select'
+import useUrlForRead from '../useUrlForRead';
 
 const INVALID_ACCOUNT_MSG = 'Konto ex. nicht'
 const INVALID_DATE_MSG = 'Datum ex. nicht'
@@ -23,7 +23,9 @@ const isDate = v => isNaN(Date.parse(v))
 
 function AccountingRecordForm(props) {
 
-    const [{ accountPlan, taxes, isLoading, isError }] = useAccountPlan();
+    const { result: accountPlan, loading, error } = useUrlForRead('/account-plan')
+    const accountPlanOptions = Object.keys(accountPlan).map(k => { return { value: accountPlan[k].konto_nr, name: accountPlan[k].name_kont } })
+    const { result: taxes /* find way to combine errors */ } = useUrlForRead('/taxes')
     const { handleSubmit, register, errors, reset } = useForm({
         defaultValues: props.defaultValues
     });
@@ -36,16 +38,10 @@ function AccountingRecordForm(props) {
 
     const validTaxOptions = taxes.map(v => v.fasuch)
 
-    const accountPlanOptions = useMemo(
-        () => Array.from(
-            accountPlan,
-            ([k, v]) => { return { value: k, name: v } }),
-        [accountPlan])
-
     /* The is loading condition ensures that the select input is rendered only when the app already received 'accountPlan' prop from api-call. The 'register' fn from 'react-form-hook'-lib takes args from 1st render only. As result the args are not updated, when accountPlan or taxes are loaded :/ */
     // TODO: reproduce in Codesandbox and report lib-owner
-    if (isError) return <p>Konnte Buchungsplan nicht vom Server laden.</p>
-    return isLoading ? <p>Laedt...</p> : <form
+    if (error) return <p>Konnte Buchungsplan nicht vom Server laden.</p>
+    return loading ? <p>Laedt...</p> : <form
         onSubmit={handleSubmit(props.onSubmit)} >
         <Padding>
             <Grid columns={3}>
@@ -87,14 +83,14 @@ function AccountingRecordForm(props) {
                     onChange={e => setDebitAccount(e.target.value)}
                     options={accountPlanOptions}
                     ref={register({
-                        validate: v => accountPlan.has(v) || INVALID_ACCOUNT_MSG
+                        validate: v => accountPlan[v] || INVALID_ACCOUNT_MSG
                     })}
                     validationMsg={errors.debitAccount}
                 />
                 </Cell>
                 {debitBalance !== undefined && <>
                     <Cell><Emphasize>
-                        {debitBalance !== undefined && accountPlan.get(debitAccount)}
+                        {debitBalance !== undefined && accountPlan[debitAccount].name_kont}
                     </Emphasize></Cell>
                     <Cell><Emphasize>
                         {debitBalance !== undefined && 'Saldo ' + debitBalance + ' S'}
@@ -109,14 +105,14 @@ function AccountingRecordForm(props) {
                     onChange={e => setCreditAccount(e.target.value)}
                     options={accountPlanOptions}
                     ref={register({
-                        validate: v => accountPlan.has(v) || INVALID_ACCOUNT_MSG
+                        validate: v => accountPlan[v] || INVALID_ACCOUNT_MSG
                     })}
                     validationMsg={errors.creditAccount}
                 />
                 </Cell>
                 {creditBalance !== undefined && <>
                     <Cell><Emphasize>
-                        {creditBalance !== undefined && accountPlan.get(creditAccount)}
+                        {creditBalance !== undefined && accountPlan[creditAccount].name_kont}
                     </Emphasize></Cell>
                     <Cell><Emphasize>
                         {creditBalance !== undefined && 'Saldo ' + creditBalance + ' H'}

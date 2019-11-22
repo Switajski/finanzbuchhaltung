@@ -2,57 +2,44 @@ import React, { useState } from 'react'
 import useKey from 'use-key-hook'
 import { Redirect } from 'react-router-dom'
 
-import { StatusHeader, Hr, Padding, Scrollable, Grid } from '../UIComponents'
+import { StatusHeader, Hr, Padding, Scrollable, Grid, UpperCase } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
 import DateInput from '../Common/DateInput'
-import Select from '../LaufendeBuchung/Select'
-import useAccountingRecords, { indexSelector } from '../LaufendeBuchung/useAccountingRecords'
-import useAccountPlan from '../LaufendeBuchung/useAccountPlan'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import Table from '../Table'
+import useUrlForRead from '../useUrlForRead'
 
-export default function () {
-    const [redirect, setRedirect] = useState(false)
+function Kontenabfrage() {
+    const [redirect, setRedirect] = useState()
     useKey(() => setRedirect(true), { detectKeys: [27] });
 
-    const [account, setAccount] = useState()
-    const [filteredArs, setFilteredArs] = useState()
+    const { result: accountOverview, loading, error } = useUrlForRead('/account-overview')
+    const { result: accountPlan } = useUrlForRead('/account-plan')
+    const safeAccountPlan = (accountPlan || {})
+    const { result: accountConfig } = useUrlForRead('/account-config')
 
-    const { accountingRecords } = useAccountingRecords([])
+    if (redirect)
+        return <Redirect to={redirect} />
 
-    const [{ accountPlan, isLoading, isError }] = useAccountPlan();
-    const accountPlanOptions = Array.from(
-        accountPlan,
-        ([k, v]) => { return { value: k, name: v } })
-
-    return redirect ? <Redirect to='/' /> : <><StatusHeader right='Kontenabfrage' /><Hr />
+    return <><StatusHeader right='Kontenabfrage' /><Hr />
         <form onSubmit={e => {
             e.preventDefault()
-            setFilteredArs(
-                account ?
-                    Array.from(accountingRecords).filter(kv => kv[1].debitAccount === account || kv[1].creditAccount === account)
-                    : accountingRecords)
         }}>
             <Padding>
-
-                <Grid columns={2}>
-                    <Cell><Select
-                        name='account'
-                        label="Konto"
-                        onChange={e => setAccount(e.target.value)}
-                        options={accountPlanOptions}
-                    /></Cell>
-                    <Cell>
-                        <DateInput name='from' label='von' /><br />
-                        <DateInput name='to' label='bis' />
-                    </Cell>
-                </Grid>
+                {loading ? 'Laedt...' :
+                    <Grid columns={1}>
+                        <Cell>
+                            <DateInput name='from' label='von' /><br />
+                            <DateInput name='to' label='bis' />
+                        </Cell>
+                    </Grid>
+                }
             </Padding>
             <KeyboardControls>
                 <KeyButton
                     active
                     text='ESC: Hauptmenue'
-                    command={() => setRedirect(true)}
+                    command={() => setRedirect('/')}
                 />
                 <KeyButton />
                 <KeyButton />
@@ -60,23 +47,26 @@ export default function () {
                 <KeyButton
                     active
                     text='&#8617; : anwenden'
-                // command={() => props.onSubmit()}
                 />
             </KeyboardControls>
         </form>
         <Hr />
         <Scrollable>
-            <Table attributes={[
-                { name: "Pos.", selector: r => r.pos },
-                { name: "Datum", selector: r => r.date },
-                { name: "Soll", selector: r => r.debitAccount },
-                { name: "Haben", selector: r => r.creditAccount },
-                { name: "Summe", selector: r => r.sum, number: true },
-                { name: "Text", selector: r => r.text }
-            ]}
-                values={filteredArs}
-                keySelector={indexSelector}
-            />
+            {Object.keys((accountOverview || {})).map(k => <>
+                <UpperCase>{accountConfig ? accountConfig.kklasse_name[k] : k}</UpperCase>
+                <Table accountingSummary attributes={[
+                    { name: "Konto", summarize: 'S', selector: r => r.account },
+                    { name: "Kontoname", selector: r => safeAccountPlan[r.account] ? safeAccountPlan[r.account].name_kont : r.account },
+                    { name: "Haben", summarize: 'D', number: true, selector: r => r.credit },
+                    { name: "Soll", summarize: 'C', number: true, selector: r => r.debit },
+                ]}
+                    values={accountOverview[k]}
+                    keySelector={r => r.account}
+                    onRowClick={r => setRedirect("/konten-saldo/" + r.account)}
+                /></>
+            )}
         </Scrollable>
     </>
 }
+
+export default Kontenabfrage

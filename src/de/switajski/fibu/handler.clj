@@ -2,7 +2,8 @@
   (:use ring.adapter.jetty
         ring.middleware.resource
         ring.middleware.content-type
-        ring.middleware.not-modified)
+        ring.middleware.not-modified
+        de.switajski.fibu.calculation)
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
@@ -74,6 +75,13 @@
                                       %1)
                                    0
                                    (records-of buchen-file)))}}))
+           (GET "/account-overview" []
+             {:status 200
+              :body   (account-overview (records-of buchen-file))})
+           (GET "/account-expressive" request
+             (let [account-no (get-in request [:params :accountNo])]
+               {:status 200
+                :body   (account-expressive (records-of buchen-file) account-no)}))
            (GET "/guv" []
              {:status 200
               :body   {:sum
@@ -85,10 +93,13 @@
                                  (records-of buchen-file)))}})
            (GET "/account-plan" []
              {:status 200
-              :body   (records-of "konten2.dbf")})
+              :body   (reduce #(assoc %1 (:konto_nr %2) %2) {} (records-of "konten2.dbf"))})
            (GET "/taxes" []
              {:status 200
               :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file
+           (GET "/account-config" []
+             {:status 200
+              :body   (edn/read "account-config.edn")})
            (POST "/create-record" req
              (doseq [record (generate-3-records-for-dbf (:body req))]
                (add-record-with-dans buchen-file record))

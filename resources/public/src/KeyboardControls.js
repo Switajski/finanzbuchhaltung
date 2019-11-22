@@ -7,7 +7,7 @@ const Button = styled(RootButton)`width:100%;
 font-size:1em;`
 const SGrid = styled(Grid)`margin: 0 1px 0 1px;
 @media print {
-    visibility: hidden;
+    display: none;
 }`
 
 export default function KeyboardControls(props) {

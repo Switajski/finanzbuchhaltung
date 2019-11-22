@@ -4,6 +4,9 @@
   font-size: 16px;
   line-height: 1em;
 }
+@media print {
+  * {font-size: 14px;}
+}
 
 html {
   background-color: rgb(7,1,126);

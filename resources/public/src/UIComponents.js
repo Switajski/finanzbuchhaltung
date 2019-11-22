@@ -20,6 +20,9 @@ color: ${props => props.theme.emphasize}`
 export const Minorize = styled.span`
 color: ${props => props.theme.minor}`
 
+export const UpperCase = styled.p`
+text-transform: uppercase`
+
 export const Screen = styled.div`
 @media not print {
     height: 90vh;
@@ -35,7 +38,7 @@ height: 100%;
 display: flex;
 flex-flow: column;
 overflow:hidden;
-border: 1px solid;`
+@media not print {border: 1px solid;}`
 
 export const Scrollable = styled.div`
 overflow:scroll;

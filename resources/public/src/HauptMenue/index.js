@@ -39,7 +39,7 @@ function HauptMenue() {
                     <MenuBlock name='Ausdruck'>
                         <MenuEntry index={5}>Journal</MenuEntry>
                         <MenuEntry index={6} to='/kontenabfrage'>Kontenabfrage</MenuEntry>
-                        <MenuEntry index={7}>Konten - Saldo</MenuEntry>
+                        <MenuEntry index={7} to='/konten-saldo'>Konten - Saldo</MenuEntry>
                         <MenuEntry index={8}>Konten - Plan</MenuEntry>
                     </MenuBlock>
                 </Cell>

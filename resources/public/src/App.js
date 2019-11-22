@@ -14,6 +14,7 @@ import Kontenabfrage from './Kontenabfrage'
 
 import Header from './Header'
 import { Screen, Content } from './UIComponents'
+import KontenSaldo from './KontenSaldo';
 
 function App() {
 
@@ -26,6 +27,7 @@ function App() {
             <Switch>
               <Route path="/laufende-buchung"><LaufendeBuchung /></Route>
               <Route path='/kontenabfrage'><Kontenabfrage /></Route>
+              <Route path='/konten-saldo/:accountNo'><KontenSaldo /></Route>
               <Route path="/"><HauptMenue /></Route>
             </Switch>
           </Content>

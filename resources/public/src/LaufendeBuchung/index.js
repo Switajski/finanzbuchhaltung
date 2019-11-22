@@ -102,7 +102,7 @@ function App() {
                     { name: "Summe", selector: r => r.sum, number: true },
                     { name: "Text", selector: r => r.text }
                 ]}
-                    values={accountingRecords}
+                    values={Array.from(accountingRecords, ([k, v]) => v)}
                     keySelector={indexSelector}
                     onRowClick={v => selectPosition(indexSelector(v))} />
             </Scrollable>
