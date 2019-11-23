@@ -22,6 +22,7 @@ function MenuBlock(props) {
 function HauptMenue() {
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect('/kontenabfrage'), { detectKeys: ['6'] })
+    useKey(() => setRedirect('/konten-saldo'), { detectKeys: ['7'] })
     useKey(() => setRedirect('/laufende-buchung'), { detectKeys: ['9'] })
     return redirect ? <Redirect to={redirect} /> : <>
         <StatusHeader right='Hauptmenue' />

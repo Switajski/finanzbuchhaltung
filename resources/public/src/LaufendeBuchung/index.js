@@ -18,7 +18,7 @@ import AccountingRecordForm from './AccountingRecordForm';
  */
 const toDomString = d => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`
 
-function App() {
+function LaufendeBuchung() {
     const [positionNr, setPositionNr] = useState(0)
     const [recordTemplate, setRecordTemplate] = useState()
     const [dirty, setDirty] = useState(false)
@@ -110,4 +110,4 @@ function App() {
     );
 }
 
-export default App;
+export default LaufendeBuchung;

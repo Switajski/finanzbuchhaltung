@@ -1,27 +1,48 @@
 import React, { useState } from 'react'
 import { useParams, Redirect } from 'react-router-dom'
-import styled from 'styled-components'
 import useKey from 'use-key-hook'
 
 import { StatusHeader, Hr, Scrollable, Padding } from '../UIComponents'
+import Select from '../LaufendeBuchung/Select'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import useUrlForRead from '../useUrlForRead'
 import Table from '../Table'
 
 function KontenSaldo() {
     const { accountNo } = useParams()
+    const [account, setAccount] = useState(accountNo)
     const { result, loading, error } = useUrlForRead('/account-expressive?accountNo=' + accountNo)
     const { result: accountPlan } = useUrlForRead('/account-plan')
+    const accountPlanOptions = Object.keys((accountPlan || {}))
+        .map(k => {
+            return {
+                value: accountPlan[k].konto_nr,
+                name: accountPlan[k].name_kont
+            }
+        })
 
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect('/'), { detectKeys: [27] });
     useKey(() => setRedirect('/kontenabfrage'), { detectKeys: ['1'] });
 
-    return redirect ? <Redirect to={redirect} /> : <>
+    if (redirect) {
+        return <Redirect from={'/konten-saldo/' + account} to={redirect} />
+    }
+
+    return <>
         <StatusHeader right={(accountNo === undefined) ? `Kontensaldo` : `Kontensaldo von ${accountNo}`} />
         <Hr />
         <Padding>
             Kontenausdruck von {accountNo} {accountPlan && accountPlan[accountNo] && (' - ' + accountPlan[accountNo].name_kont)}
+            <form onSubmit={e => {
+                e.preventDefault()
+                setRedirect('/reload/konten-saldo/' + account)
+            }}><Select options={accountPlanOptions}
+                name='account'
+                label="Konto &nbsp;"
+                value={account}
+                onChange={e => setAccount(e.target.value)} />
+            </form>
         </Padding>
         <KeyboardControls>
             <KeyButton

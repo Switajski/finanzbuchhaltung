@@ -24,8 +24,15 @@ const isDate = v => isNaN(Date.parse(v))
 function AccountingRecordForm(props) {
 
     const { result: accountPlan, loading, error } = useUrlForRead('/account-plan')
-    const accountPlanOptions = Object.keys(accountPlan).map(k => { return { value: accountPlan[k].konto_nr, name: accountPlan[k].name_kont } })
-    const { result: taxes /* find way to combine errors */ } = useUrlForRead('/taxes')
+    const accountPlanOptions = Object.keys((accountPlan || {}))
+        .map(k => {
+            return {
+                value: accountPlan[k].konto_nr,
+                name: accountPlan[k].name_kont
+            }
+        })
+    const { result: taxesRaw /* find way to combine errors */ } = useUrlForRead('/taxes')
+    const taxes = (taxesRaw || [])
     const { handleSubmit, register, errors, reset } = useForm({
         defaultValues: props.defaultValues
     });
