@@ -15,7 +15,9 @@ color: ${props => props.active ? props.theme.header : props.theme.brightGrey};
 border: 0;`
 
 export const Emphasize = styled.span`
-color: ${props => props.theme.emphasize}`
+@media not print {
+    color: ${props => props.theme.emphasize}
+}`
 
 export const Minorize = styled.span`
 color: ${props => props.theme.minor}`
@@ -52,18 +54,22 @@ border:0.5px solid;`
 export const Padding = styled.div`
 padding: 5px 20px 5px 20px;`
 
-const RightAlignedCell = styled(Cell)`text-align:right;`
-
 export function StatusHeader(props) {
-    return <Padding>
-        <Grid columns={3}>
-            <Cell>FIBU 2.1</Cell>
-            <RightAlignedCell><Emphasize>{props.middle} &nbsp;</Emphasize></RightAlignedCell>
-            <Cell>{props.right}</Cell>
+    return <>
+        <Grid columns={6}>
+            <Cell middle center>FIBU 2.1</Cell>
+            <Cell {...props} width={props.join ? 5 : 3}>{props.children}</Cell>
+            {!props.join && <Cell width={2} middle>{props.right}</Cell>}
         </Grid>
-    </Padding>
+        <Hr />
+    </>
 }
 
-export function HorSpacer(props) {
+export function HorSpacer() {
     return <>&nbsp; &nbsp;</>
 }
+
+export const Centered = styled.div`height: 100%;
+display: flex;
+align-items: center;
+justify-content: center;`

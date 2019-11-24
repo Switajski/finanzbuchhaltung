@@ -130,6 +130,7 @@ function AccountingRecordForm(props) {
 
             <CurrencyInput
                 name='sum'
+                size={7}
                 label='Summe'
                 ref={register({ required: INVALID_SUM_MSG, min: 0 })}
                 validationMsg={errors.sum}

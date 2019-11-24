@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import { Link, Redirect } from 'react-router-dom'
 import useKey from 'use-key-hook'
 
-import { StatusHeader, Hr, Grid, Emphasize, Padding, Minorize } from '../UIComponents'
+import { StatusHeader, Grid, Emphasize, Padding, Minorize } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
+import LabeledInput from '../LaufendeBuchung/LabeledInput'
 
 function MenuEntry(props) {
     return <li>{props.index && `[${props.index}] `}
@@ -13,9 +14,7 @@ function MenuEntry(props) {
 function MenuBlock(props) {
     return <>
         <Emphasize>{props.name}</Emphasize>
-        <ul>
-            {props.children}
-        </ul>
+        <ul>{props.children}</ul>
     </>
 }
 
@@ -25,8 +24,7 @@ function HauptMenue() {
     useKey(() => setRedirect('/konten-saldo'), { detectKeys: ['7'] })
     useKey(() => setRedirect('/laufende-buchung'), { detectKeys: ['9'] })
     return redirect ? <Redirect to={redirect} /> : <>
-        <StatusHeader right='Hauptmenue' />
-        <Hr />
+        <StatusHeader middle>Hauptmenue</StatusHeader>
         <Padding>
             <Grid columns={6}>
                 <Cell />
@@ -57,6 +55,7 @@ function HauptMenue() {
                         <MenuEntry index={13}>Kontrollfunktion</MenuEntry>
                         <MenuEntry index={14}>Monatsabschluss</MenuEntry>
                     </MenuBlock>
+                    <LabeledInput autoFocus label='Ihre Auswahl' size='2' />
                 </Cell>
                 <Cell />
             </Grid>

@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import useKey from 'use-key-hook'
 import { Redirect } from 'react-router-dom'
 
-import { StatusHeader, Hr, Padding, Scrollable, Grid, UpperCase } from '../UIComponents'
-import { Cell } from 'styled-css-grid'
+import { StatusHeader, Hr, Scrollable, UpperCase } from '../UIComponents'
 import DateInput from '../Common/DateInput'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import Table from '../Table'
@@ -21,19 +20,13 @@ function Kontenabfrage() {
     if (redirect)
         return <Redirect to={redirect} />
 
-    return <><StatusHeader right='Kontenabfrage' /><Hr />
+    return <><StatusHeader join >Kontenabfrage
+        <DateInput autoFocus name='from' label=' von' />
+        &nbsp;<DateInput name='to' label='bis' />
+    </StatusHeader>
         <form onSubmit={e => {
             e.preventDefault()
         }}>
-            <Padding>
-                {loading ? 'Laedt...' :
-                    <Grid columns={1}>
-                        <Cell>
-                            <DateInput name='from' label='von' /><br />
-                            <DateInput name='to' label='bis' />
-                        </Cell>
-                    </Grid>}
-            </Padding>
             <KeyboardControls>
                 <KeyButton
                     active

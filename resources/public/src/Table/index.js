@@ -3,6 +3,16 @@ import styled from 'styled-components'
 
 import NumberCell from './NumberCell'
 
+const DateCell = styled.td`white-space: nowrap;`
+
+const TypeAwareCell = props => {
+    if (props.number)
+        return <NumberCell {...props} />
+    if (props.date)
+        return <DateCell {...props} />
+    return <td {...props} />
+}
+
 const FullWidthTable = styled.table`
 width: 100%;`
 const TrWithHover = styled.tr`
@@ -25,25 +35,27 @@ function Table(props) {
             {props.values && props.values.map(r =>
                 <TrWithHover onClick={() => props.onRowClick && props.onRowClick(r)}
                     key={props.keySelector(r)}>
-                    {props.attributes.map((att, i) => att.number
-                        ? <NumberCell value={att.selector(r)} key={i} />
-                        : <td key={i}>{att.selector(r)}</td>
-                    )}
+                    {props.attributes.map((att, i) => <TypeAwareCell {...att} key={i}>
+                        {att.selector(r)}
+                    </TypeAwareCell>)}
                 </TrWithHover>
             )}
         </tbody>
         {(props.accountingSummary && props.values) && <tfoot><tr>
             {props.attributes.map(c => c.summarize).map(conf => {
-                if (conf === 'D') return <NumberCell th
-                    value={props.values.reduce((a, r) => a + r.debit, 0)} />
-                if (conf === 'C') return <NumberCell th
-                    value={props.values.reduce((a, r) => a + r.credit, 0)} />
-                if (conf === 'S') return <NumberCell th creditDebit
-                    value={props.values.reduce((a, r) => a + r.debit - r.credit, 0)} />
+                if (conf === 'D') return <NumberCell th>
+                    {props.values.reduce((a, r) => a + r.debit, 0)}</NumberCell>
+                if (conf === 'C') return <NumberCell th>
+                    {props.values.reduce((a, r) => a + r.credit, 0)}
+                </NumberCell>
+                if (conf === 'S') return <NumberCell th creditDebit>
+                    {props.values.reduce((a, r) => a + r.debit - r.credit, 0)}
+                </NumberCell>
                 else return <NumberCell th />
             })}
-        </tr></tfoot>}
+        </tr></tfoot>
+        }
         {props.children}
-    </FullWidthTable>
+    </FullWidthTable >
 }
 export default Table

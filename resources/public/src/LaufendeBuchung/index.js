@@ -6,7 +6,8 @@ import useKey from 'use-key-hook'
 import useAccountingRecords, { indexSelector } from './useAccountingRecords'
 import PositionSelectInputForm from './PositionSelectForm'
 
-import { Hr, StatusHeader, Scrollable } from '../UIComponents'
+import { Hr, StatusHeader, Scrollable, Emphasize, Grid } from '../UIComponents'
+import { Cell } from 'styled-css-grid'
 import Table from '../Table'
 
 import AccountingRecordForm from './AccountingRecordForm';
@@ -74,9 +75,12 @@ function LaufendeBuchung() {
 
     return (
         <>
-            <StatusHeader middle={selectMode ? '' :
-                (accountingRecords.has(positionNr) ? 'korrigiere' : 'neue')} right='laufende Buchung' />
-            <Hr />
+            <StatusHeader right='laufende Buchung'>
+                <Emphasize>
+                    {selectMode ? '' :
+                        (accountingRecords.has(positionNr) ? 'korrigiere ' : 'neue ')}
+                </Emphasize>
+            </StatusHeader>
             {selectMode && <PositionSelectInputForm
                 autoFocus
                 label='Position Nr.'
@@ -96,7 +100,7 @@ function LaufendeBuchung() {
             <Scrollable>
                 <Table attributes={[
                     { name: "Pos.", selector: r => r.pos },
-                    { name: "Datum", selector: r => r.date },
+                    { name: "Datum", selector: r => r.date, date: true },
                     { name: "Soll", selector: r => r.debitAccount },
                     { name: "Haben", selector: r => r.creditAccount },
                     { name: "Summe", selector: r => r.sum, number: true },

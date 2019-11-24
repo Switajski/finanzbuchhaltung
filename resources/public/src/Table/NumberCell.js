@@ -28,8 +28,8 @@ export const OldNumberCell = props => {
 }
 
 const NumberCell = props => <TdOrTdRightAlign th={props.th}>
-    {props.value && (isZero(props.value) ? 0 : formatCurrency(props.value))}
-    {props.creditDebit && (props.value >= 0 ? ' H' : ' S')}
+    {props.children && (isZero(props.children) ? 0 : formatCurrency(props.children))}
+    {props.creditDebit && (props.children >= 0 ? ' H' : ' S')}
 </TdOrTdRightAlign>
 
 export default NumberCell
