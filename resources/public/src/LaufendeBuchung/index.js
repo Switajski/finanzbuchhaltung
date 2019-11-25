@@ -6,8 +6,7 @@ import useKey from 'use-key-hook'
 import useAccountingRecords, { indexSelector } from './useAccountingRecords'
 import PositionSelectInputForm from './PositionSelectForm'
 
-import { Hr, StatusHeader, Scrollable, Emphasize, Grid } from '../UIComponents'
-import { Cell } from 'styled-css-grid'
+import { Hr, StatusHeader, Scrollable, Emphasize } from '../UIComponents'
 import Table from '../Table'
 
 import AccountingRecordForm from './AccountingRecordForm';

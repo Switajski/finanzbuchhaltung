@@ -8,11 +8,18 @@ import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import Table from '../Table'
 import useUrlForRead from '../useUrlForRead'
 
+const toString = d => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+const createQuery = (from, to) => `/account-overview?from=${from}&to=${to}`
+
 function Kontenabfrage() {
+    const [from, setFrom] = useState('2000-01-01')
+    const [to, setTo] = useState(toString(new Date()))
+    const [query, setQuery] = useState(createQuery(from, to))
+
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect(true), { detectKeys: [27] });
 
-    const { result: accountOverview, loading, error } = useUrlForRead('/account-overview')
+    const { result: accountOverview, loading, error } = useUrlForRead(query)
     const { result: accountPlan } = useUrlForRead('/account-plan')
     const safeAccountPlan = (accountPlan || {})
     const { result: accountConfig } = useUrlForRead('/account-config')
@@ -20,13 +27,21 @@ function Kontenabfrage() {
     if (redirect)
         return <Redirect to={redirect} />
 
-    return <><StatusHeader join >Kontenabfrage
-        <DateInput autoFocus name='from' label=' von' />
-        &nbsp;<DateInput name='to' label='bis' />
-    </StatusHeader>
+    return <>
         <form onSubmit={e => {
             e.preventDefault()
+            setQuery(createQuery(from, to))
         }}>
+            <StatusHeader join >
+                {loading ? 'laedt... ' : 'Kontenabfrage'}
+                <DateInput value={from}
+                    onChange={e => setFrom(e.target.value)}
+                    autoFocus name='from' label=' von' />
+                &nbsp;<DateInput value={to}
+                    onChange={e => setTo(e.target.value)}
+                    name='to' label='bis' />
+            </StatusHeader>
+
             <KeyboardControls>
                 <KeyButton
                     active
@@ -39,6 +54,7 @@ function Kontenabfrage() {
                 <KeyButton
                     active
                     text='&#8617; : anwenden'
+                    submit
                 />
             </KeyboardControls>
         </form>

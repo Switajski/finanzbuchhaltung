@@ -1,15 +1,5 @@
 import { useEffect, useState } from 'react'
 
-const failureAwareFetch = (url, opts) => {
-    return fetch(url, opts)
-        .then(r => {
-            if (!r.ok) {
-                throw new Error(r.statusText + ' at ' + r.url)
-            }
-            return r.json()
-        })
-}
-
 function useUrlForRead(url) {
     const [result, setResult] = useState()
     const [loading, setLoading] = useState(false)
@@ -18,7 +8,13 @@ function useUrlForRead(url) {
         setLoading(true)
         const fetchUrl = async () => {
             try {
-                const response = await failureAwareFetch(url)
+                const response = await fetch(url)
+                    .then(r => {
+                        if (!r.ok) {
+                            throw new Error(r.statusText + ' at ' + r.url)
+                        }
+                        return r.json()
+                    })
                 setResult(response)
                 setLoading(false)
             } catch (error) {

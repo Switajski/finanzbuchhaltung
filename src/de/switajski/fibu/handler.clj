@@ -75,9 +75,16 @@
                                       %1)
                                    0
                                    (records-of buchen-file)))}}))
-           (GET "/account-overview" []
-             {:status 200
-              :body   (account-overview (records-of buchen-file))})
+           (GET "/account-overview" request
+             (let [from (get-in request [:params :from])
+                   to (get-in request [:params :to])]
+               {:status  200
+                :headers {"from" from
+                          "to"   to}
+                :body    (account-overview
+                           (filter #(and (<= (compare from (:bdatum %)) 0)
+                                         (>= (compare to (:bdatum %)) 0))
+                                   (records-of buchen-file)))}))
            (GET "/account-expressive" request
              (let [account-no (get-in request [:params :accountNo])]
                {:status 200
