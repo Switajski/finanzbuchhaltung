@@ -91,13 +91,7 @@
                 :body   (account-expressive (records-of buchen-file) account-no)}))
            (GET "/guv" []
              {:status 200
-              :body   {:sum
-                       (number-format
-                         (reduce #(if (= "A" (:kklasse %2))
-                                    (+ %1 (:betrag_h %2))
-                                    %1)
-                                 0
-                                 (records-of buchen-file)))}})
+              :body   (report-guv (records-of buchen-file))})
            (GET "/account-plan" []
              {:status 200
               :body   (reduce #(assoc %1 (:konto_nr %2) %2) {} (records-of "konten2.dbf"))})

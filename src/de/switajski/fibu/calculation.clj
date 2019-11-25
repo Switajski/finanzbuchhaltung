@@ -21,3 +21,20 @@
                 :debit         (:betrag_h r)
                 :credit        (:betrag_s r)})
        (filter #(= account-no (:konto %1)) accounting-records)))
+
+(defn to-month [date]
+  (subs date 0 7))
+
+(defn report-guv [accounting-records]
+  (reduce-kv (fn [guv month records-in-month]
+               (assoc
+                 guv
+                 month
+                 (- (reduce + (->> records-in-month
+                                   (filter #(= "E" (:kklasse %)))
+                                   (map :betrag_h)))
+                    (reduce + (->> records-in-month
+                                   (filter #(= "A" (:kklasse %)))
+                                   (map :betrag_s))))))
+             {}
+             (group-by #(to-month (:bdatum %)) accounting-records)))
