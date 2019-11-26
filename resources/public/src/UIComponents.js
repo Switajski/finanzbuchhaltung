@@ -73,3 +73,11 @@ export const Centered = styled.div`height: 100%;
 display: flex;
 align-items: center;
 justify-content: center;`
+
+export function Loading() {
+    return <Centered><Emphasize>laedt...</Emphasize></Centered>
+}
+
+export function Failed() {
+    return <Centered><Emphasize>Konnte Daten aufgrund eines Serverfehlers nicht laden</Emphasize></Centered>
+}

@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import useForm from "react-hook-form";
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
-import { Padding, Grid, Emphasize, HorSpacer } from '../UIComponents'
+import { Padding, Grid, Emphasize, HorSpacer, Loading } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
 
 import useBalance from './useBalance'
@@ -43,14 +43,14 @@ function AccountingRecordForm(props) {
 
     const [creditAccount, setCreditAccount] = useState()
     const [debitAccount, setDebitAccount] = useState()
-    const [{ creditBalance, debitBalance }, balanceErrored] = useBalance({ accountPlan, debitAccount, creditAccount })
+    const [{ creditBalance, debitBalance }] = useBalance({ accountPlan, debitAccount, creditAccount })
 
     const validTaxOptions = taxes.map(v => v.fasuch)
 
-    /* The is loading condition ensures that the select input is rendered only when the app already received 'accountPlan' prop from api-call. The 'register' fn from 'react-form-hook'-lib takes args from 1st render only. As result the args are not updated, when accountPlan or taxes are loaded :/ */
+    /* The loading condition ensures that the select input is rendered only when the app already received 'accountPlan' prop from api-call. The 'register' fn from 'react-form-hook'-lib takes args from 1st render only. As result the args are not updated, when accountPlan or taxes are loaded :/ */
     // TODO: reproduce in Codesandbox and report lib-owner
     if (error) return <p>Konnte Buchungsplan nicht vom Server laden.</p>
-    return loading ? <p>Laedt...</p> : <form
+    return loading ? <Loading /> : <form
         onSubmit={handleSubmit(props.onSubmit)} >
         <Padding>
             <Grid columns={3}>

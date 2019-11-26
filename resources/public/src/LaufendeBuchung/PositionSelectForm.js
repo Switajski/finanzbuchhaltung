@@ -19,7 +19,10 @@ function PositionSelectInputForm(props) {
             <Grid columns={3}>
                 <Cell><LabeledInput
                     {...props}
-                    onChange={e => props.onChange(parseInt(e.target.value))}
+                    type='number'
+                    style={{ width: '50px' }}
+                    min='1'
+                    onChange={e => props.onChange(e.target.value)}
                 /></Cell>
             </Grid>
         </Padding>

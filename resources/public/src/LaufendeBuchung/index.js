@@ -6,7 +6,7 @@ import useKey from 'use-key-hook'
 import useAccountingRecords, { indexSelector } from './useAccountingRecords'
 import PositionSelectInputForm from './PositionSelectForm'
 
-import { Hr, StatusHeader, Scrollable, Emphasize } from '../UIComponents'
+import { Hr, StatusHeader, Scrollable, Emphasize, Loading } from '../UIComponents'
 import Table from '../Table'
 
 import AccountingRecordForm from './AccountingRecordForm';
@@ -19,7 +19,8 @@ import AccountingRecordForm from './AccountingRecordForm';
 const toDomString = d => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`
 
 function LaufendeBuchung() {
-    const [positionNr, setPositionNr] = useState(0)
+    const [positionNr, setPositionNrRaw] = useState(0)
+    const setPositionNr = p => setPositionNrRaw(parseInt(p))
     const [recordTemplate, setRecordTemplate] = useState()
     const [dirty, setDirty] = useState(false)
     const selectMode = recordTemplate === undefined
@@ -31,7 +32,7 @@ function LaufendeBuchung() {
     const cancel = () => setRecordTemplate(undefined)
     useKey(() => cancel(), { detectKeys: [27] });
 
-    /** select accounting record from table for editing */
+    /** select latest position from accounting records for new accounting record */
     useEffect(() => {
         if (accountingRecords.size > 0) {
             const firstAr = accountingRecords.values().next().value
@@ -70,7 +71,7 @@ function LaufendeBuchung() {
                 setDirty(!dirty)
             } else alert.info(newMessage.message)
         }
-    }, [arMessages])
+    }, [arMessages, alert])
 
     return (
         <>
@@ -96,7 +97,7 @@ function LaufendeBuchung() {
                 defaultValues={recordTemplate}
             />}
             <Hr />
-            {loading ? 'laedt...' : <Scrollable>
+            {loading ? <Loading /> : <Scrollable>
                 <Table attributes={[
                     { name: "Pos.", selector: r => r.pos },
                     { name: "Datum", selector: r => r.date, date: true },

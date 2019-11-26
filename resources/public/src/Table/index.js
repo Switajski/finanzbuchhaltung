@@ -5,40 +5,50 @@ import NumberCell from './NumberCell'
 
 const DateCell = styled.td`white-space: nowrap;`
 const TypeAwareCell = props => {
+    const { selector, ...rest } = props
     if (props.number)
-        return <NumberCell {...props} />
+        return <NumberCell {...rest} />
     if (props.date)
-        return <DateCell {...props} />
-    return <td {...props} />
+        return <DateCell {...rest} />
+    return <td {...rest} />
 }
 
-const Thead = styled.thead`text-align: left;`
-const FullWidthTable = styled.table`
-width: 100%;`
-const TrWithHover = styled.tr`
+const TableStyle = styled.table`
+  width: 100%;
+  th, td {
+    margin: 0;
+  }
+  thead th {
+    border-bottom: 1px solid;
+  }
+  tfoot th {
+    border-top: 1px solid;
+  }`
+const TrLinkable = styled.tr`
+${props => props.link && `
 cursor:pointer;
 &:hover {
-    background-color: ${props => props.theme.variableBg};
-    color: ${props => props.active};
-}`
-const TrLinkAware = props => props.link ? <TrWithHover {...props} /> : <tr {...props} />
+    background-color:`+ props.theme.variableBg + `;
+    color:`+ props.active + `;
+}`}`
 
-const Th = styled.th`border-bottom: 1px solid;`
-const ThRightAligned = styled(Th)`text-align: right;`
-const ThNumberAware = props => props.number ? <ThRightAligned {...props} /> : <Th {...props} />
+const ThAlignable = styled.th`
+    text-align:${({ alignRight }) => alignRight ? 'right' : 'left'};`
 
 function Table(props) {
-    return <FullWidthTable>
-        <Thead>
-            <tr>{props.attributes.map(att => <ThNumberAware
-                number={att.number}
-                key={att.name}>{att.name}
-            </ThNumberAware>)}
+    return <TableStyle>
+        <thead>
+            <tr>
+                {props.attributes.map(att => <ThAlignable
+                    alignRight={att.number}
+                    number={att.number}
+                    key={att.name}>{att.name}
+                </ThAlignable>)}
             </tr>
-        </Thead>
+        </thead>
         <tbody>
             {props.values && props.values.map(r =>
-                <TrLinkAware
+                <TrLinkable
                     link={props.onRowClick}
                     onClick={() => props.onRowClick && props.onRowClick(r)}
                     key={props.keySelector(r)}
@@ -48,28 +58,29 @@ function Table(props) {
                         key={i}>
                         {att.selector(r)}
                     </TypeAwareCell>)}
-                </TrLinkAware>
+                </TrLinkable>
             )}
         </tbody>
         {(props.accountingSummary && props.values) && <tfoot><tr>
             {props.attributes.map(c => {
-                if (c.summarize === 'D')
-                    return <NumberCell th suffix='H'>
+                const key = c.name
+                if (c.customFooter)
+                    return <NumberCell th creditDebitSuffix key={key}>
+                        {c.customFooter}
+                    </NumberCell>
+                if (c.summarize)
+                    return <NumberCell th suffix={c.summarize} key={key}>
                         {props.values.reduce((a, r) => a + c.selector(r), 0)}
                     </NumberCell>
-                else if (c.summarize === 'C') return <NumberCell th suffix='S'>
-                    {props.values.reduce((a, r) => a + c.selector(r), 0)}
-                </NumberCell>
-                else if (c.summarize === 'S') return <NumberCell th creditDebitSuffix>
-                    {props.values.reduce((a, r) => a + r.debit - r.credit, 0)}
-                </NumberCell>
-                else if (c.customFooter)
-                    return <NumberCell th creditDebitSuffix>{c.customFooter}</NumberCell>
-                else return <NumberCell th />
+                if (c.expressive)
+                    return <NumberCell th creditDebitSuffix>
+                        {props.values.reduce((a, r) => a + r.debit - r.credit, 0)}
+                    </NumberCell>
+                return <NumberCell th key={key} />
             })}
         </tr></tfoot>
         }
         {props.children}
-    </FullWidthTable >
+    </TableStyle >
 }
 export default Table

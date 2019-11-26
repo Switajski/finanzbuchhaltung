@@ -38,7 +38,7 @@ function useAccountingRecords(deps) {
             }
         }
         fetchAccountingRecords()
-    }, deps)
+    }, [...deps, arMessages])
 
     function saveAccountingRecord(accountingRecord) {
         const createAr = async () => {

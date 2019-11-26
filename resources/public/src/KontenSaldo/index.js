@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, Redirect } from 'react-router-dom'
 import useKey from 'use-key-hook'
+import { useAlert } from "react-alert";
 
-import { StatusHeader, Hr, Scrollable, Centered, Emphasize } from '../UIComponents'
+
+import { StatusHeader, Hr, Scrollable, Centered, Emphasize, Loading, Failed } from '../UIComponents'
 import Select from '../LaufendeBuchung/Select'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import useUrlForRead from '../useUrlForRead'
@@ -12,7 +14,7 @@ function KontenSaldo() {
     const { accountNo } = useParams()
     const [account, setAccount] = useState(accountNo)
     const { result, loading, error } = useUrlForRead('/account-expressive?accountNo=' + accountNo)
-    const { result: accountPlan } = useUrlForRead('/account-plan')
+    const { result: accountPlan, error: apErrored } = useUrlForRead('/account-plan')
     const accountPlanOptions = Object.keys((accountPlan || {}))
         .map(k => {
             return {
@@ -20,6 +22,12 @@ function KontenSaldo() {
                 name: accountPlan[k].name_kont
             }
         })
+
+    const alert = useAlert()
+    useEffect(() => {
+        error && alert.error('Konnte Kontensaldo nicht vom Server laden')
+        apErrored && alert.error('Konnte Kontenplan (konten.dbf) nicht vom Server laden')
+    }, [error, apErrored, alert])
 
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect('/'), { detectKeys: [27] });
@@ -58,18 +66,20 @@ function KontenSaldo() {
             <KeyButton />
         </KeyboardControls>
         <Hr />
-        {loading ? 'laedt...' : <Scrollable><Table attributes={[
-            { name: "Beleg", selector: r => r.pos },
-            { name: "Buchung", date: true, selector: r => r.accountedDate },
-            { name: "Haben", summarize: 'D', number: true, suffix: 'H', selector: r => r.debit !== 0 && r.debit },
-            { name: "Soll", summarize: 'C', number: true, suffix: 'S', selector: r => r.credit !== 0 && r.credit },
-            { name: "Buchungstext", summarize: 'S', selector: r => r.text },
-            { name: "Gegen", selector: r => r.gegen },
-        ]}
-            values={result}
-            keySelector={r => r.pos}
-            accountingSummary />
-        </Scrollable>}
+        {loading ? <Loading /> : error ? <Failed />
+            : (result && result.length < 1) ? <Centered>Keine Buchungen gefunden</Centered>
+                : <Scrollable><Table attributes={[
+                    { name: "Beleg", selector: r => r.pos },
+                    { name: "Buchung", date: true, selector: r => r.accountedDate },
+                    { name: "Haben", summarize: 'H', number: true, suffix: 'H', selector: r => r.debit !== 0 && r.debit },
+                    { name: "Soll", summarize: 'S', number: true, suffix: 'S', selector: r => r.credit !== 0 && r.credit },
+                    { name: "Buchungstext", expressive: true, selector: r => r.text },
+                    { name: "Gegen", selector: r => r.gegen },
+                ]}
+                    values={result}
+                    keySelector={r => r.pos}
+                    accountingSummary />
+                </Scrollable>}
     </>
 }
 

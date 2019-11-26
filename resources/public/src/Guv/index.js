@@ -1,21 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Redirect } from 'react-router-dom'
 import useKey from 'use-key-hook'
+import { useAlert } from 'react-alert'
 
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
-import { StatusHeader, Centered, Hr } from '../UIComponents'
+import { StatusHeader, Centered, Hr, Loading, Scrollable } from '../UIComponents'
 import useUrlForRead from '../useUrlForRead'
 import Table from '../Table'
 
 function Guv() {
     const { result, loading, error } = useUrlForRead('/guv')
-    const [redirect, setRedirect] = useState()
+    const alert = useAlert()
+    useEffect(() => error && alert.error("Konnte GuV nicht vom Server laden"), [error, alert])
 
+    const [redirect, setRedirect] = useState()
     useKey(() => setRedirect('/'), { detectKeys: [27] });
 
     const months = result ? Object.keys((result.ertraege || {})) : []
     months.sort((a, b) => a === b ? 0 : a > b ? 1 : -1)
-
     const values = []
     let accumulated = 0
     months.forEach(month => {
@@ -43,16 +45,16 @@ function Guv() {
             <KeyButton />
         </KeyboardControls>
         <Hr />
-        {loading ? 'laedt...' : <Table accountingSummary attributes={[{
+        {loading ? <Loading /> : <Scrollable><Table accountingSummary attributes={[{
             name: "Monat",
             selector: r => r.month
         }, {
-            name: "Aufwendungen", summarize: 'C',
+            name: "Aufwendungen", summarize: 'S',
             selector: r => r.aufwand,
             number: true,
             suffix: 'S'
         }, {
-            name: "Ertraege", summarize: 'D',
+            name: "Ertraege", summarize: 'H',
             selector: r => r.ertrag,
             number: true,
             suffix: 'H'
@@ -71,7 +73,7 @@ function Guv() {
         },]}
             values={values}
             keySelector={r => r.month}
-        />}
+        /></Scrollable>}
     </>
 
 }
