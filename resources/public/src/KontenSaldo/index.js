@@ -58,18 +58,18 @@ function KontenSaldo() {
             <KeyButton />
         </KeyboardControls>
         <Hr />
-        <Scrollable><Table attributes={[
+        {loading ? 'laedt...' : <Scrollable><Table attributes={[
             { name: "Beleg", selector: r => r.pos },
             { name: "Buchung", date: true, selector: r => r.accountedDate },
-            { name: "Haben", summarize: 'D', number: true, selector: r => { if (r.debit !== 0) return r.debit } },
-            { name: "Soll", summarize: 'C', number: true, selector: r => { if (r.credit !== 0) return r.credit } },
-            { name: "Buchungstext", selector: r => r.text },
-            { name: "Gegen", summarize: 'S', selector: r => r.gegen },
+            { name: "Haben", summarize: 'D', number: true, suffix: 'H', selector: r => r.debit !== 0 && r.debit },
+            { name: "Soll", summarize: 'C', number: true, suffix: 'S', selector: r => r.credit !== 0 && r.credit },
+            { name: "Buchungstext", summarize: 'S', selector: r => r.text },
+            { name: "Gegen", selector: r => r.gegen },
         ]}
             values={result}
             keySelector={r => r.pos}
             accountingSummary />
-        </Scrollable>
+        </Scrollable>}
     </>
 }
 

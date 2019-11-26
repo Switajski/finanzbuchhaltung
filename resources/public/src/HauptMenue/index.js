@@ -51,7 +51,7 @@ function HauptMenue() {
                         <MenuEntry index={11}>Lieferant</MenuEntry>
                     </MenuBlock>
                     <MenuBlock name='Abschluss, Auswertungen'>
-                        <MenuEntry index={12}>Gewinn und Verlust</MenuEntry>
+                        <MenuEntry index={12} to='/guv'>Gewinn und Verlust</MenuEntry>
                         <MenuEntry index={13}>Kontrollfunktion</MenuEntry>
                         <MenuEntry index={14}>Monatsabschluss</MenuEntry>
                     </MenuBlock>

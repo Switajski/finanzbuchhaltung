@@ -9,10 +9,11 @@ import { ThemeProvider } from 'styled-components'
 import clipperTheme from './clipperTheme'
 import './App.css';
 import LaufendeBuchung from './LaufendeBuchung'
-import HauptMenue from './HauptMenue';
+import HauptMenue from './HauptMenue'
 import Kontenabfrage from './Kontenabfrage'
-import KontenSaldo from './KontenSaldo';
-import Reload from './KontenSaldo/Reload';
+import KontenSaldo from './KontenSaldo'
+import Reload from './KontenSaldo/Reload'
+import Guv from './Guv'
 
 import Header from './Header'
 import { Screen, Content } from './UIComponents'
@@ -31,6 +32,7 @@ function App() {
               <Route path='/kontenabfrage'><Kontenabfrage /></Route>
               <Route path='/konten-saldo/:accountNo'><KontenSaldo /></Route>
               <Route path='/konten-saldo'><KontenSaldo /></Route>
+              <Route path='/guv'><Guv /></Route>
               <Route path="/"><HauptMenue /></Route>
             </Switch>
           </Content>

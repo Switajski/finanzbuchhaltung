@@ -18,8 +18,10 @@ function createSuccessMsgObj(msg) {
 function useAccountingRecords(deps) {
     const [accountingRecords, setAccountingRecords] = useState(new Map())
     const [arMessages, setMessages] = useState([])
+    const [loading, setLoading] = useState(false)
     useEffect(() => {
         const fetchAccountingRecords = async () => {
+            setLoading(true)
             try {
                 const response = await failureAwareFetch('/accounting-records')
                 const ars = response.slice(1)
@@ -29,7 +31,9 @@ function useAccountingRecords(deps) {
                         return a
                     }, new Map())
                 setAccountingRecords(ars)
+                setLoading(false)
             } catch (error) {
+                setLoading(false)
                 setMessages([...arMessages, error])
             }
         }
@@ -55,7 +59,7 @@ function useAccountingRecords(deps) {
         createAr()
     }
 
-    return { accountingRecords, arMessages, saveAccountingRecord }
+    return { accountingRecords, arMessages, saveAccountingRecord, loading }
 }
 
 export default useAccountingRecords

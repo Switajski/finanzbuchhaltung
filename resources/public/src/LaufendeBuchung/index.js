@@ -25,7 +25,7 @@ function LaufendeBuchung() {
     const selectMode = recordTemplate === undefined
     const editMode = !selectMode
 
-    const { accountingRecords, arMessages, saveAccountingRecord } = useAccountingRecords([indexSelector, dirty])
+    const { accountingRecords, arMessages, saveAccountingRecord, loading } = useAccountingRecords([indexSelector, dirty])
 
     /** cancel on ESC */
     const cancel = () => setRecordTemplate(undefined)
@@ -96,7 +96,7 @@ function LaufendeBuchung() {
                 defaultValues={recordTemplate}
             />}
             <Hr />
-            <Scrollable>
+            {loading ? 'laedt...' : <Scrollable>
                 <Table attributes={[
                     { name: "Pos.", selector: r => r.pos },
                     { name: "Datum", selector: r => r.date, date: true },
@@ -108,7 +108,7 @@ function LaufendeBuchung() {
                     values={Array.from(accountingRecords, ([k, v]) => v)}
                     keySelector={indexSelector}
                     onRowClick={v => selectPosition(indexSelector(v))} />
-            </Scrollable>
+            </Scrollable>}
         </>
     );
 }

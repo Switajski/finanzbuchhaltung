@@ -21,6 +21,8 @@ const INVALID_SUM_MSG = 'Keinen Betrag eingegeben'
 
 const isDate = v => isNaN(Date.parse(v))
 
+const Saldo = ({ value }) => <>Saldo {(value < 0 ? -value : value).toLocaleString()} {value < 0 ? 'S' : 'H'} </>
+
 function AccountingRecordForm(props) {
 
     const { result: accountPlan, loading, error } = useUrlForRead('/account-plan')
@@ -97,10 +99,10 @@ function AccountingRecordForm(props) {
                 </Cell>
                 {debitBalance !== undefined && <>
                     <Cell><Emphasize>
-                        {debitBalance !== undefined && accountPlan[debitAccount].name_kont}
+                        {debitBalance !== undefined && accountPlan[debitAccount] && accountPlan[debitAccount].name_kont}
                     </Emphasize></Cell>
                     <Cell><Emphasize>
-                        {debitBalance !== undefined && 'Saldo ' + debitBalance + ' S'}
+                        {debitBalance !== undefined && <Saldo value={debitBalance} />}
                     </Emphasize></Cell>
                 </>}
             </Grid>
@@ -122,7 +124,7 @@ function AccountingRecordForm(props) {
                         {creditBalance !== undefined && accountPlan[creditAccount].name_kont}
                     </Emphasize></Cell>
                     <Cell><Emphasize>
-                        {creditBalance !== undefined && 'Saldo ' + creditBalance + ' H'}
+                        {creditBalance !== undefined && <Saldo value={creditBalance} />}
                     </Emphasize></Cell>
                 </>}
             </Grid>

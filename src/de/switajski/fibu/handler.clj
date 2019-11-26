@@ -68,13 +68,11 @@
            (GET "/balance" request
              (let [accountNo (get-in request [:params :accountNo])]
                {:status 200
-                :body   {:sum
-                         (number-format
-                           (reduce #(if (= accountNo (:konto %2))
-                                      (+ %1 (:betrag_h %2))
-                                      %1)
-                                   0
-                                   (records-of buchen-file)))}}))
+                :body   {:sum (number-format
+                                (reduce + (->> (records-of buchen-file)
+                                               (filter #(= accountNo (:konto %)))
+                                               (map #(- (:betrag_h %) (:betrag_s %))))
+                                        ))}}))
            (GET "/account-overview" request
              (let [from (get-in request [:params :from])
                    to (get-in request [:params :to])]
@@ -84,14 +82,16 @@
                 :body    (account-overview
                            (filter #(and (<= (compare from (:bdatum %)) 0)
                                          (>= (compare to (:bdatum %)) 0))
-                                   (records-of buchen-file)))}))
+                                   (records-of buchen-file)) number-format)}))
            (GET "/account-expressive" request
              (let [account-no (get-in request [:params :accountNo])]
                {:status 200
                 :body   (account-expressive (records-of buchen-file) account-no)}))
            (GET "/guv" []
              {:status 200
-              :body   (report-guv (records-of buchen-file))})
+              :body   (let [accounting-records (records-of buchen-file)]
+                        {:ertraege     (sum-by-month accounting-records "E" "betrag_h" number-format)
+                         :aufwendungen (sum-by-month accounting-records "A" "betrag_s" number-format)})})
            (GET "/account-plan" []
              {:status 200
               :body   (reduce #(assoc %1 (:konto_nr %2) %2) {} (records-of "konten2.dbf"))})

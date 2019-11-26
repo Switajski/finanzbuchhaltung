@@ -65,9 +65,9 @@ function Kontenabfrage() {
                 <Table accountingSummary attributes={[
                     { name: "Konto", selector: r => r.account },
                     { name: "Kontoname", selector: r => safeAccountPlan[r.account] ? safeAccountPlan[r.account].name_kont : r.account },
-                    { name: "Haben", summarize: 'D', number: true, selector: r => r.credit },
-                    { name: "Soll", summarize: 'C', number: true, selector: r => r.debit },
-                    { name: "Saldo", summarize: 'S', number: true, selector: r => r.debit - r.credit },
+                    { name: "Haben", summarize: 'D', suffix: 'H', number: true, selector: r => r.debit !== 0 && r.debit },
+                    { name: "Soll", summarize: 'C', suffix: 'S', number: true, selector: r => r.credit !== 0 && r.credit },
+                    { name: "Saldo", summarize: 'S', creditDebitSuffix: true, number: true, selector: r => r.debit - r.credit },
                 ]}
                     values={accountOverview[k]}
                     keySelector={r => r.account}
