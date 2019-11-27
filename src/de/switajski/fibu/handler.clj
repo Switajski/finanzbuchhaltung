@@ -95,6 +95,9 @@
            (GET "/account-plan" []
              {:status 200
               :body   (reduce #(assoc %1 (:konto_nr %2) %2) {} (records-of "konten2.dbf"))})
+           (GET "/account-plan-atts" []
+             {:status 200
+              :body   (map :name (dbf/read-records-meta "konten2.dbf"))})
            (GET "/taxes" []
              {:status 200
               :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file
@@ -142,8 +145,8 @@
 (def app
   (-> app-routes
       (wrap-resource "public/build")
-      (wrap-content-type)
-      (wrap-not-modified)
+      ;(wrap-content-type) // initiates download of json data in browser
+      ;(wrap-not-modified)
       (wrap-dir-index)
       (handler/api)
       (middleware/wrap-json-body {:keywords? true})

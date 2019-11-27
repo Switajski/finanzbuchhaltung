@@ -6,11 +6,11 @@ import { Cell } from 'styled-css-grid'
 
 import useBalance from './useBalance'
 
-import LabeledInput from './LabeledInput'
+import LabeledInput from '../Common/LabeledInput'
 import TextInput from './TextInput'
 import CurrencyInput from './CurrencyInput'
 import DateInput from '../Common/DateInput'
-import Select from './Select'
+import Select from '../Common/Select'
 import useUrlForRead from '../useUrlForRead';
 
 const INVALID_ACCOUNT_MSG = 'Konto ex. nicht'

@@ -15,6 +15,7 @@ function Guv() {
 
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect('/'), { detectKeys: [27] });
+    if (redirect) return <Redirect to={redirect} />
 
     const months = result ? Object.keys((result.ertraege || {})) : []
     months.sort((a, b) => a === b ? 0 : a > b ? 1 : -1)
@@ -28,7 +29,6 @@ function Guv() {
         values.push({ month, ertrag, aufwand, gewinn, accumulated })
     })
 
-    if (redirect) return <Redirect to={redirect} />
 
     return <><StatusHeader>
         <Centered>Gewinn und Verlustrechnung</Centered>

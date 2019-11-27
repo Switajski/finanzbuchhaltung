@@ -5,7 +5,7 @@ import useKey from 'use-key-hook'
 
 import { Padding, Grid } from '../UIComponents'
 
-import LabeledInput from './LabeledInput'
+import LabeledInput from '../Common/LabeledInput'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 
 function PositionSelectInputForm(props) {

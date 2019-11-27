@@ -5,7 +5,7 @@ import { useAlert } from "react-alert";
 
 
 import { StatusHeader, Hr, Scrollable, Centered, Emphasize, Loading, Failed } from '../UIComponents'
-import Select from '../LaufendeBuchung/Select'
+import Select from '../Common/Select'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import useUrlForRead from '../useUrlForRead'
 import Table from '../Table'

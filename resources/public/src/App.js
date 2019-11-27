@@ -13,6 +13,7 @@ import HauptMenue from './HauptMenue'
 import Kontenabfrage from './Kontenabfrage'
 import KontenSaldo from './KontenSaldo'
 import Reload from './KontenSaldo/Reload'
+import Konten from './Konten'
 import Guv from './Guv'
 
 import Header from './Header'
@@ -33,6 +34,7 @@ function App() {
               <Route path='/konten-saldo/:accountNo'><KontenSaldo /></Route>
               <Route path='/konten-saldo'><KontenSaldo /></Route>
               <Route path='/guv'><Guv /></Route>
+              <Route path='/accounts'><Konten /></Route>
               <Route path="/"><HauptMenue /></Route>
             </Switch>
           </Content>

@@ -4,7 +4,7 @@ import useKey from 'use-key-hook'
 
 import { StatusHeader, Grid, Emphasize, Padding, Minorize } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
-import LabeledInput from '../LaufendeBuchung/LabeledInput'
+import LabeledInput from '../Common/LabeledInput'
 
 function MenuEntry(props) {
     return <li>{props.index && `[${props.index}] `}
@@ -20,6 +20,7 @@ function MenuBlock(props) {
 
 function HauptMenue() {
     const [redirect, setRedirect] = useState()
+    useKey(() => setRedirect('/accounts'), { detectKeys: ['2'] })
     useKey(() => setRedirect('/kontenabfrage'), { detectKeys: ['6'] })
     useKey(() => setRedirect('/konten-saldo'), { detectKeys: ['7'] })
     useKey(() => setRedirect('/laufende-buchung'), { detectKeys: ['9'] })
@@ -31,7 +32,7 @@ function HauptMenue() {
                 <Cell width={2} >
                     <MenuBlock name='Stammdaten'>
                         <MenuEntry index={1} >Steuerschluessel</MenuEntry>
-                        <MenuEntry index={2} >Konto</MenuEntry>
+                        <MenuEntry index={2} to='/accounts'>Konten</MenuEntry>
                         <MenuEntry index={3} >Reorganisation</MenuEntry>
                         <MenuEntry index={4} >Kontenbelegung</MenuEntry>
                     </MenuBlock>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 function useUrlForRead(url) {
     const [result, setResult] = useState()
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [error, setError] = useState()
     useEffect(() => {
         setLoading(true)

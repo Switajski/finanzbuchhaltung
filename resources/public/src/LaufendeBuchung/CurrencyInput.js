@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react'
 import styled from 'styled-components'
-import EmphasizableInput from './EmphasizableInput'
+import EmphasizableInput from '../Common/EmphasizableInput'
 
 const InputAlignedRight = styled(EmphasizableInput)`
 text-align:right;`

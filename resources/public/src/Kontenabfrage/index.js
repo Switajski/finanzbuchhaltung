@@ -20,7 +20,6 @@ function Kontenabfrage() {
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect(true), { detectKeys: [27] });
 
-
     const { result: accountOverview, loading, error: aoErrored } = useUrlForRead(query)
     const { result: accountPlan, error: apErrored } = useUrlForRead('/account-plan')
     const safeAccountPlan = (accountPlan || {})
