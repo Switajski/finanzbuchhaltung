@@ -30,7 +30,7 @@ function Kontenabfrage() {
         aoErrored && alert.error('Konnte Kontenabfrage nicht vom Server laden')
         apErrored && alert.error('Konnte Kontenplan (konten.dbf) nicht vom Server laden')
         acErrored && alert.error('Konnte Kontenkonfiguration (account-config.edn) nicht vom Server laden')
-    }, [aoErrored, apErrored, acErrored, alert])
+    }, [aoErrored, apErrored, acErrored])
 
     if (redirect)
         return <Redirect to={redirect} />

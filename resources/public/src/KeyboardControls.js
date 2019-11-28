@@ -11,13 +11,35 @@ const SGrid = styled(Grid)`margin: 0 1px 0 1px;
 }`
 
 export default function KeyboardControls(props) {
-    return <SGrid columns={5}>
+    return <SGrid columns={5} alignContent='end'>
         {props.children}
     </SGrid>
 }
 
 export function KeyButton(props) {
     return <Cell>{props.active && <Button type={props.submit ? 'submit' : 'button'} {...props} onClick={props.command}>
-        {props.text}
+        {props.symbol && props.symbol}{props.text}
     </Button>}</Cell>
+}
+
+export function EditFormKeyboardControls(props) {
+    return <KeyboardControls>
+        <KeyButton
+            active
+            type='reset'
+            command={props.cancel}
+            key='ESC'
+            text='ESC: Abbrechen' />
+        <KeyButton />
+        <KeyButton />
+        <KeyButton
+            active
+            text='&#8633; : naechstes Feld'
+        />
+        <KeyButton
+            active
+            text='&#8617; : speichern'
+            type='submit'
+        />
+    </KeyboardControls>
 }

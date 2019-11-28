@@ -15,11 +15,11 @@ function useUrlForRead(url) {
                         }
                         return r.json()
                     })
+                setLoading(false)
                 setResult(response)
-                setLoading(false)
             } catch (error) {
-                setError(error)
                 setLoading(false)
+                setError(error)
             }
         }
         fetchUrl()

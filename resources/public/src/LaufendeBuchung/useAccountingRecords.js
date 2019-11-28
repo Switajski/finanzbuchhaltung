@@ -30,8 +30,8 @@ function useAccountingRecords(deps) {
                         a.set(indexSelector(ar), ar)
                         return a
                     }, new Map())
-                setAccountingRecords(ars)
                 setLoading(false)
+                setAccountingRecords(ars)
             } catch (error) {
                 setLoading(false)
                 setMessages([...arMessages, error])

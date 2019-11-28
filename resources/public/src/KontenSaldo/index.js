@@ -27,7 +27,7 @@ function KontenSaldo() {
     useEffect(() => {
         error && alert.error('Konnte Kontensaldo nicht vom Server laden')
         apErrored && alert.error('Konnte Kontenplan (konten.dbf) nicht vom Server laden')
-    }, [error, apErrored, alert])
+    }, [error, apErrored])
 
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect('/'), { detectKeys: [27] });

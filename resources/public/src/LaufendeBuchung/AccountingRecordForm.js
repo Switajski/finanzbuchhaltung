@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import useForm from "react-hook-form";
-import KeyboardControls, { KeyButton } from '../KeyboardControls'
+import { EditFormKeyboardControls } from '../KeyboardControls'
 import { Padding, Grid, Emphasize, HorSpacer, Loading } from '../UIComponents'
 import { Cell } from 'styled-css-grid'
 
@@ -155,25 +155,7 @@ function AccountingRecordForm(props) {
                 validationMsg={errors.text}
             />
         </Padding>
-        <KeyboardControls>
-            <KeyButton
-                active
-                type='reset'
-                command={props.cancel}
-                key='ESC'
-                text='ESC: Abbrechen' />
-            <KeyButton />
-            <KeyButton />
-            <KeyButton
-                active
-                text='&#8633; : naechstes Feld'
-            />
-            <KeyButton
-                active
-                text='&#8617; : speichern'
-                type='submit'
-            />
-        </KeyboardControls>
+        <EditFormKeyboardControls cancel={props.cancel} />
     </form>
 
 

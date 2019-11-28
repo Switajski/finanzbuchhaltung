@@ -8,7 +8,7 @@ import { Padding, Grid } from '../UIComponents'
 import LabeledInput from '../Common/LabeledInput'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 
-function PositionSelectInputForm(props) {
+function SelectForm(props) {
     const [redirect, setRedirect] = useState(false)
     useKey(() => setRedirect(true), { detectKeys: [27] });
     return redirect ? <Redirect to='/' /> : <form onSubmit={e => {
@@ -37,11 +37,12 @@ function PositionSelectInputForm(props) {
             <KeyButton />
             <KeyButton
                 active
-                text='&#8617; : neue Buchung'
+                text={' : ' + props.newRecordButtonText}
+                symbol='&#8617;'
                 command={() => props.onSubmit()}
             />
         </KeyboardControls>
     </form>
 }
 
-export default PositionSelectInputForm
+export default SelectForm

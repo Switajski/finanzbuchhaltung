@@ -4,7 +4,7 @@ import { useAlert } from "react-alert";
 import useKey from 'use-key-hook'
 
 import useAccountingRecords, { indexSelector } from './useAccountingRecords'
-import PositionSelectInputForm from './PositionSelectForm'
+import SelectForm from '../Common/SelectForm'
 
 import { Hr, StatusHeader, Scrollable, Emphasize, Loading } from '../UIComponents'
 import Table from '../Table'
@@ -19,14 +19,15 @@ import AccountingRecordForm from './AccountingRecordForm';
 const toDomString = d => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`
 
 function LaufendeBuchung() {
-    const [positionNr, setPositionNrRaw] = useState(0)
+    const [positionNr, setPositionNrRaw] = useState('')
     const setPositionNr = p => setPositionNrRaw(parseInt(p))
-    const [recordTemplate, setRecordTemplate] = useState()
     const [dirty, setDirty] = useState(false)
-    const selectMode = recordTemplate === undefined
-    const editMode = !selectMode
 
     const { accountingRecords, arMessages, saveAccountingRecord, loading } = useAccountingRecords([indexSelector, dirty])
+
+    const [recordTemplate, setRecordTemplate] = useState()
+    const selectMode = recordTemplate === undefined
+    const editMode = !selectMode
 
     /** cancel on ESC */
     const cancel = () => setRecordTemplate(undefined)
@@ -71,7 +72,7 @@ function LaufendeBuchung() {
                 setDirty(!dirty)
             } else alert.info(newMessage.message)
         }
-    }, [arMessages, alert])
+    }, [arMessages])
 
     return (
         <>
@@ -81,13 +82,12 @@ function LaufendeBuchung() {
                         (accountingRecords.has(positionNr) ? 'korrigiere ' : 'neue ')}
                 </Emphasize>
             </StatusHeader>
-            {selectMode && <PositionSelectInputForm
+            {selectMode && <SelectForm
                 autoFocus
+                newRecordButtonText='neue Buchung'
                 label='Position Nr.'
-                size={6}
                 value={positionNr}
                 onSubmit={() => selectPosition(positionNr)}
-                pos={positionNr}
                 onChange={setPositionNr}
             />}
             {editMode && <AccountingRecordForm

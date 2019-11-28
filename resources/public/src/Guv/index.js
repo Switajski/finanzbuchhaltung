@@ -11,7 +11,7 @@ import Table from '../Table'
 function Guv() {
     const { result, loading, error } = useUrlForRead('/guv')
     const alert = useAlert()
-    useEffect(() => error && alert.error("Konnte GuV nicht vom Server laden"), [error, alert])
+    useEffect(() => error && alert.error("Konnte GuV nicht vom Server laden"), [error])
 
     const [redirect, setRedirect] = useState()
     useKey(() => setRedirect('/'), { detectKeys: [27] });
