@@ -9,6 +9,7 @@ pom.xml.asc
 *.jar
 *.zip
 *.class
+*.log
 *.dbf
 *.edn
 /.lein-*

@@ -15,6 +15,11 @@ const TypeAwareCell = props => {
 
 const TableStyle = styled.table`
   width: 100%;
+  @media print {
+      td {
+        border-bottom: 1px dotted;
+      }
+  }
   th, td {
     margin: 0;
   }

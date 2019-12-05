@@ -13,7 +13,7 @@ function Guv() {
     const alert = useAlert()
     useEffect(() => error && alert.error("Konnte GuV nicht vom Server laden"), [error])
 
-    const [redirect, setRedirect] = useState()
+    const [redirect, setRedirect] = useState(false)
     useKey(() => setRedirect('/'), { detectKeys: [27] });
     if (redirect) return <Redirect to={redirect} />
 
