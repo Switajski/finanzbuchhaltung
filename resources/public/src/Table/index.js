@@ -15,6 +15,7 @@ const TypeAwareCell = props => {
 
 const TableStyle = styled.table`
   width: 100%;
+  border-collapse:collapse;
   @media print {
       td {
         border-bottom: 1px dotted;
@@ -22,6 +23,9 @@ const TableStyle = styled.table`
   }
   th, td {
     margin: 0;
+  }
+  tr:nth-child(even) {
+      background-color: #06025e;
   }
   thead th {
     border-bottom: 1px solid;
@@ -33,15 +37,16 @@ const TrLinkable = styled.tr`
 ${props => props.link && `
 cursor:pointer;
 &:hover {
-    background-color:`+ props.theme.variableBg + `;
-    color:`+ props.active + `;
-}`}`
+    background-color:`+ props.theme.variableBg + ` !important;
+    color:`+ props.theme.active + `;
+}
+`}`
 
 const ThAlignable = styled.th`
     text-align:${({ alignRight }) => alignRight ? 'right' : 'left'};`
 
 function Table(props) {
-    return <TableStyle>
+    return <TableStyle cellspacing="0" cellpadding="0">
         <thead>
             <tr>
                 {props.attributes.map(att => <ThAlignable
