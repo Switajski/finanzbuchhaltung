@@ -5,7 +5,6 @@
         ring.middleware.not-modified
         de.switajski.fibu.calculation)
   (:require [compojure.core :refer :all]
-            [cheshire.core :as json2]
             [compojure.handler :as handler]
             [ring.middleware.json :as middleware]
             [ring.middleware.params :as params-middleware]
@@ -15,11 +14,8 @@
             [de.switajski.ednreader :as edn]
             [clojure.java.io :as jio]
             [clojure.data.json :as json]
-            [ring.util.io :as ring-io]
-            [noisesmith.groundhog :as groundhog]
-            [clojure.java.io :as io])
-  (:import (java.math RoundingMode)
-           (java.io ByteArrayInputStream ByteArrayOutputStream))
+            [ring.util.io :as ring-io])
+  (:import (java.math RoundingMode))
   (:gen-class))
 
 (def BUFFER-SIZE 8192)
@@ -140,33 +136,6 @@
                        "\"status\":500"
                        "}")}))))
 
-(defn- json-request? [request]
-  (if-let [type (:content-type request)]
-    (not (empty? (re-find #"^application/(.+\+)?json" type)))))
-(defn- read-json [body & [keywords?]]
-  (let [body-string (slurp body)]
-    (try
-      [true (json2/parse-string body-string keywords?)]
-      (catch com.fasterxml.jackson.core.JsonParseException ex
-        [false nil]))))
-
-(defn tee-stream
-  "Given a stream we can read from, returns the eagerly read bytes of the stream,
-   plus a new stream that will provide those same contents."
-  [stream]
-  (let [buffer (ByteArrayOutputStream.)
-        _ (io/copy stream buffer)
-        bytes (.toByteArray buffer)]
-    {:stream   (ByteArrayInputStream. bytes)
-     :contents bytes}))
-
-(defn log-json-requests [handler]
-  (fn [request]
-    (if (json-request? request)
-      (let [body (read-json (tee-stream (:body request)))]
-        (spit "wazne.log" (str body) :append true)))
-    (handler request)))
-
 (defn wrap-dir-index [handler]
   (fn [req]
     (handler
@@ -181,8 +150,6 @@
       (middleware/wrap-json-body {:keywords? true})
       (params-middleware/wrap-params)
       middleware/wrap-json-response
-      ;(log-json-requests)
-      ;groundhog/groundhog
       wrap-runtime-exception-handling))
 
 (defn -main

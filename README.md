@@ -1,3 +1,5 @@
+[![Clojars Project](https://img.shields.io/clojars/v/de.switajski.finanzbuchhaltung.svg)](https://clojars.org/de.switajski.finanzbuchhaltung)
+
 # Finanzbuchhaltung
 
 ![logo](https://raw.githubusercontent.com/switajski/finanzbuchhaltung/master/logo-files/Original-400x400px.png)
