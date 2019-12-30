@@ -23,6 +23,7 @@ const TableStyle = styled.table`
   }
   th, td {
     margin: 0;
+    padding: 3px 5px 3px 3px;
   }
   tr:nth-child(even) {
       background-color: #06025e;
