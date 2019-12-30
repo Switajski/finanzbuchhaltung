@@ -24,16 +24,15 @@ const siteIndex = {
 function MenuEntry(props) {
   return (
     <li>
-      {props.index && `[${props.index}] `}
       {props.to ? <Link {...props} /> : <Minorize>{props.children}</Minorize>}
     </li>
   )
 }
-function MenuBlock(props) {
+function MenuBlock({name, children, start = 1}) {
   return (
     <>
-      <Emphasize>{props.name}</Emphasize>
-      <ul>{props.children}</ul>
+      <Emphasize>{name}</Emphasize>
+      <ol start={start}>{children}</ol>
     </>
   )
 }
@@ -66,40 +65,41 @@ function HauptMenue() {
       <Flex>
         <div>
           <MenuBlock name="Stammdaten">
-            <MenuEntry index={1}>Steuerschluessel</MenuEntry>
-            <MenuEntry index={2} to={siteIndex[2]}>
+            <MenuEntry>Steuerschluessel</MenuEntry>
+            <MenuEntry to={siteIndex[2]}>
               Konten
             </MenuEntry>
-            <MenuEntry index={3}>Reorganisation</MenuEntry>
-            <MenuEntry index={4}>Kontenbelegung</MenuEntry>
+            <MenuEntry>Reorganisation</MenuEntry>
+            <MenuEntry>Kontenbelegung</MenuEntry>
           </MenuBlock>
-          <MenuBlock name="Ausdruck">
-            <MenuEntry index={5}>Journal</MenuEntry>
-            <MenuEntry index={6} to={siteIndex[6]}>
+          <MenuBlock name="Ausdruck" start={5}>
+            <MenuEntry>Journal</MenuEntry>
+            <MenuEntry to={siteIndex[6]}>
               Kontenabfrage
             </MenuEntry>
-            <MenuEntry index={7} to={siteIndex[7]}>
+            <MenuEntry to={siteIndex[7]}>
               Konten - Saldo
             </MenuEntry>
-            <MenuEntry index={8}>Konten - Plan</MenuEntry>
+            <MenuEntry>Konten - Plan</MenuEntry>
           </MenuBlock>
         </div>
         <div>
-          <MenuBlock name="Laufende Verarbeitung">
-            <MenuEntry index={9} to={siteIndex[9]}>
+          <MenuBlock name="Laufende Verarbeitung" start={9}>
+            <MenuEntry to={siteIndex[9]}>
               Laufende Buchung
             </MenuEntry>
           </MenuBlock>
-          <MenuBlock name="Offene-Posten-Auswertungen">
-            <MenuEntry index={10}>Kunde</MenuEntry>
-            <MenuEntry index={11}>Lieferant</MenuEntry>
+          <MenuBlock name="Offene-Posten-Auswertungen"
+          start={10}>
+            <MenuEntry>Kunde</MenuEntry>
+            <MenuEntry>Lieferant</MenuEntry>
           </MenuBlock>
-          <MenuBlock name="Abschluss, Auswertungen">
-            <MenuEntry index={12} to={siteIndex[12]}>
+          <MenuBlock name="Abschluss, Auswertungen" start={12}>
+            <MenuEntry to={siteIndex[12]}>
               Gewinn und Verlust
             </MenuEntry>
-            <MenuEntry index={13}>Kontrollfunktion</MenuEntry>
-            <MenuEntry index={14}>Monatsabschluss</MenuEntry>
+            <MenuEntry>Kontrollfunktion</MenuEntry>
+            <MenuEntry>Monatsabschluss</MenuEntry>
           </MenuBlock>
         </div>
       </Flex>
