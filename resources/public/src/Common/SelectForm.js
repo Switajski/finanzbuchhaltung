@@ -32,9 +32,6 @@ function SelectForm(props) {
                 text='ESC: Hauptmenue'
                 command={() => setRedirect(true)}
             />
-            <KeyButton />
-            <KeyButton />
-            <KeyButton />
             <KeyButton
                 active
                 text={' : ' + props.newRecordButtonText}

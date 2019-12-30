@@ -39,15 +39,12 @@ function Guv() {
                 text='ESC: Hauptmenue'
                 command={() => setRedirect('/')}
             />
-            <KeyButton />
-            <KeyButton />
-            <KeyButton />
-            <KeyButton />
         </KeyboardControls>
         <Hr />
         {loading ? <Loading /> : <Scrollable><Table accountingSummary attributes={[{
             name: "Monat",
-            selector: r => r.month
+            selector: r => r.month,
+            date:true
         }, {
             name: "Aufwendungen", summarize: 'S',
             selector: r => r.aufwand,

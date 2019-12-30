@@ -56,9 +56,6 @@ function Kontenabfrage() {
                     text='ESC: Hauptmenue'
                     command={() => setRedirect('/')}
                 />
-                <KeyButton />
-                <KeyButton />
-                <KeyButton />
                 <KeyButton
                     active
                     text='&#8617; : anwenden'

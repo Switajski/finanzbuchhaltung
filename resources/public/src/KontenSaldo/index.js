@@ -83,8 +83,6 @@ function KontenSaldo() {
           text="Kontenabfrage"
           command={() => setRedirect('/kontenabfrage')}
         />
-        <KeyButton />
-        <KeyButton />
         <KeyButton active text="&#8617; : Kontensaldo" type="submit" />
       </KeyboardControls>
       <Hr />

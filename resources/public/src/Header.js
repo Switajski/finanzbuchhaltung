@@ -1,18 +1,25 @@
 import React from 'react'
-import { Grid, Cell } from 'styled-css-grid'
+import styled from 'styled-components'
 import { Pill } from './UIComponents'
 
+const Flex = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1px;
+`
 function Header() {
-    return (<Grid columns={2}>
-        <Cell>
-            <Pill>
-                &nbsp;{new Date().toLocaleDateString()}&nbsp;
-          </Pill>
-        </Cell>
-        <Cell>
-            <Pill>Georg Switajski&nbsp;&nbsp;&nbsp;</Pill>
-        </Cell>
-    </Grid>)
+  return (
+    <Flex>
+      <div>
+        <Pill>
+          &nbsp;{new Date().toLocaleDateString()}&nbsp;
+        </Pill>
+      </div>
+      <div>
+        <Pill>&nbsp;Georg Switajski&nbsp;&nbsp;&nbsp;</Pill>
+      </div>
+    </Flex>
+  )
 }
 
 export default Header
