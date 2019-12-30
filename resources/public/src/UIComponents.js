@@ -27,7 +27,7 @@ text-transform: uppercase`
 
 export const Screen = styled.div`
 @media not print {
-    height: 90vh;
+    height: 95vh;
 }
 display: block;
 max-width: 1000px;

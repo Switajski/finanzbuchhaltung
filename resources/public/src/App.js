@@ -16,7 +16,6 @@ import Reload from './KontenSaldo/Reload'
 import Konten from './Konten'
 import Guv from './Guv'
 
-import Header from './Header'
 import { Screen, Content } from './UIComponents'
 
 function App() {
@@ -25,7 +24,6 @@ function App() {
     <ThemeProvider theme={clipperTheme}>
       <Router>
         <Screen>
-          <Header />
           <Content>
             <Switch>
               <Route path="/laufende-buchung"><LaufendeBuchung /></Route>
