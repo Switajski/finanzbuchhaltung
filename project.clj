@@ -1,4 +1,4 @@
-(defproject de.switajski.finanzbuchhaltung "2.1.4-SNAPSHOT"
+(defproject de.switajski.finanzbuchhaltung "2.1.5-SNAPSHOT"
   :description "Simple accounting web application using DBF files"
   :url "https://finanzbuchhaltung.switajski.de"
   :min-lein-version "2.0.0"
