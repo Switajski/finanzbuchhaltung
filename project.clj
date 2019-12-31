@@ -1,4 +1,4 @@
-(defproject de.switajski.finanzbuchhaltung "2.1.3"
+(defproject de.switajski.finanzbuchhaltung "2.1.4-SNAPSHOT"
   :description "Simple accounting web application using DBF files"
   :url "https://finanzbuchhaltung.switajski.de"
   :min-lein-version "2.0.0"
@@ -21,6 +21,7 @@
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
                   ["shell" "npm" "version" "--allow-same-version" "${:version}"]
+                  ["shell" "yarn" "build"]
                   ["vcs" "commit"]
                   ["vcs" "tag" "--no-sign"]
                   ["deploy"]
