@@ -144,7 +144,7 @@
 
 (def app
   (-> app-routes
-      (wrap-resource "public/build")
+      (wrap-resource "public")
       (wrap-dir-index)
       (handler/api)
       (middleware/wrap-json-body {:keywords? true})
