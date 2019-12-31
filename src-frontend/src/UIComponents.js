@@ -1,5 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
+import packageJson from './package.alias'
+
 import { Grid as OGrid, Cell } from 'styled-css-grid'
 
 export const Grid = styled(OGrid)`grid-gap:0;`
@@ -57,7 +59,7 @@ padding: 5px 20px 5px 20px;`
 export function StatusHeader(props) {
     return <>
         <Grid columns={6}>
-            <Cell middle center>FIBU 2.1</Cell>
+            <Cell middle center>FIBU {packageJson.version}</Cell>
             <Cell {...props} width={props.join ? 5 : 3}>{props.children}</Cell>
             {!props.join && <Cell width={2} middle>{props.right}</Cell>}
         </Grid>

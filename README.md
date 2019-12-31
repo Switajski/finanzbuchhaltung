@@ -31,6 +31,11 @@ To start the frontend, run:
     cd resources/public
     yarn install
     yarn start
+    
+## Release
+
+    lein release
+    lein s3-uberjar-release
 
 ## License
 

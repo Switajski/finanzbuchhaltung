@@ -1,4 +1,4 @@
-(defproject de.switajski.finanzbuchhaltung "2.1.0"
+(defproject de.switajski.finanzbuchhaltung "2.1.1"
   :description "Simple accounting web application using DBF files"
   :url "https://finanzbuchhaltung.switajski.de"
   :min-lein-version "2.0.0"
@@ -14,7 +14,19 @@
                  [org.clojure/data.json "0.2.6"]]
   :scm {:name "git" :url "https://github.com/switajski/finanzbuchhaltung"}
   :plugins [[lein-ring "0.12.5"]
-            [lein-s3-uberjar-release "0.1.0"]]
+            [lein-s3-uberjar-release "0.1.0"]
+            [lein-pprint "1.2.0"]
+            [lein-shell "0.5.0"]]
+  :shell {:dir "src-frontend"}
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["shell" "npm" "version" "${:version}"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag"]
+                  ["deploy"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]]
   :main de.switajski.fibu.handler
   :ring {:handler de.switajski.fibu.handler/app
          :port    4000
@@ -23,8 +35,6 @@
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring/ring-mock "0.3.2"]]}}
   :s3-uberjar-release {:bucket "public-switajski"
-                       :prefix "/releases"                  ; %s is current git hash
-                       ;:filename "raflui-standalone.jar"
-                       }
+                       :prefix "/releases"}
   ;:jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5010"] ;for debugging https://stackoverflow.com/questions/56300204/how-to-debug-a-clojure-web-application-in-intellij
   )

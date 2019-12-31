@@ -4,6 +4,7 @@ import { Pill } from './UIComponents'
 
 const Flex = styled.div`
   display: flex;
+  justify-items: flex-end;
   justify-content: space-between;
   margin-bottom: 1px;
 `
