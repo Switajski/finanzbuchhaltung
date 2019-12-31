@@ -1,6 +1,6 @@
 {
   "name": "finanzbuchhaltung",
-  "version": "2.1.1-SNAPSHOT",
+  "version": "2.1.1",
   "private": false,
   "dependencies": {
     "react": "^16.10.2",
