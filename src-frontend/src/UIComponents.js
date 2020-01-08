@@ -14,7 +14,13 @@ color: ${props => props.theme.header};`
 export const Button = styled.button`
 background-color: ${props => props.theme.variableBg};
 color: ${props => props.active ? props.theme.header : props.theme.brightGrey};
-border: 0;`
+border: 0;
+:hover {
+    color: ${props => props.theme.emphasize}
+}
+:active {
+    color: ${props => props.theme.active}
+}`
 
 export const Emphasize = styled.span`
 @media not print {
