@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import useForm from "react-hook-form";
 import { EditFormKeyboardControls } from '../KeyboardControls'
-import { Padding, Grid, Emphasize, HorSpacer, Loading } from '../UIComponents'
-import { Cell } from 'styled-css-grid'
+import { Padding, Emphasize, HorSpacer, Loading } from '../UIComponents'
+import styled from 'styled-components'
 
 import useBalance from './useBalance'
 
@@ -13,6 +13,13 @@ import DateInput from '../Common/DateInput'
 import Select from '../Common/Select'
 import useUrlForRead from '../useUrlForRead';
 
+const Flex = styled.div`
+display:flex;
+justify-content: space-between;`
+const FlexEnd = styled.div`
+display:flex;
+justify-content: flex-start;`
+
 const INVALID_ACCOUNT_MSG = 'Konto ex. nicht'
 const INVALID_DATE_MSG = 'Datum ex. nicht'
 const INVALID_TAX_MSG = 'Steuerschl. ex. nicht'
@@ -21,7 +28,9 @@ const INVALID_SUM_MSG = 'Keinen Betrag eingegeben'
 
 const isDate = v => isNaN(Date.parse(v))
 
-const Saldo = ({ value }) => <>Saldo {(value < 0 ? -value : value).toLocaleString()} {value < 0 ? 'S' : 'H'} </>
+const AlignRight = styled.div`text-align:right;`
+const NoWrap = styled.span`white-space: nowrap;`
+const Saldo = ({ value }) => <>Saldo <NoWrap>{(value < 0 ? -value : value).toLocaleString()} {value < 0 ? 'S' : 'H'} </NoWrap></>
 
 function AccountingRecordForm(props) {
 
@@ -53,17 +62,17 @@ function AccountingRecordForm(props) {
     return loading ? <Loading /> : <form
         onSubmit={handleSubmit(props.onSubmit)} >
         <Padding>
-            <Grid columns={3}>
-                <Cell><LabeledInput
+            <Flex>
+                <div><LabeledInput
                     name='pos'
-                    label='Position Nr.'
+                    label='Pos. Nr.'
                     size={6}
                     readOnly={true}
                     value={props.pos}
                     ref={register}
-                /></Cell>
+                /></div>
 
-                <Cell><DateInput
+                <div><DateInput
                     name='date'
                     label='Datum'
                     autoFocus
@@ -71,9 +80,9 @@ function AccountingRecordForm(props) {
                         validate: v => !isDate(v) || INVALID_DATE_MSG
                     })}
                     validationMsg={errors.date}
-                /></Cell>
+                /></div>
 
-                <Cell><DateInput
+                <div><DateInput
                     name='accountedDate'
                     label='Buchungsdatum'
                     ref={register({
@@ -81,12 +90,12 @@ function AccountingRecordForm(props) {
                     })}
                     validationMsg={errors.accountedDate}
                 /><br />
-                </Cell>
-            </Grid>
+                </div>
+            </Flex>
 
             <br />
-            <Grid columns={debitBalance === undefined ? 1 : 3}>
-                <Cell><Select
+            <Flex>
+                <div><Select
                     name='debitAccount'
                     label="Konto Soll&nbsp;&nbsp;"
                     onChange={e => setDebitAccount(e.target.value)}
@@ -96,19 +105,19 @@ function AccountingRecordForm(props) {
                     })}
                     validationMsg={errors.debitAccount}
                 />
-                </Cell>
+                </div>
                 {debitBalance !== undefined && <>
-                    <Cell><Emphasize>
+                    <div><Emphasize>
                         {debitBalance !== undefined && accountPlan[debitAccount] && accountPlan[debitAccount].name_kont}
-                    </Emphasize></Cell>
-                    <Cell><Emphasize>
+                    </Emphasize></div>
+                    <AlignRight><Emphasize>
                         {debitBalance !== undefined && <Saldo value={debitBalance} />}
-                    </Emphasize></Cell>
+                    </Emphasize></AlignRight>
                 </>}
-            </Grid>
+            </Flex>
 
-            <Grid columns={creditBalance === undefined ? 1 : 3}>
-                <Cell><Select
+            <Flex>
+                <div><Select
                     name='creditAccount'
                     label="Konto Haben&nbsp;"
                     onChange={e => setCreditAccount(e.target.value)}
@@ -118,35 +127,40 @@ function AccountingRecordForm(props) {
                     })}
                     validationMsg={errors.creditAccount}
                 />
-                </Cell>
+                </div>
                 {creditBalance !== undefined && <>
-                    <Cell><Emphasize>
+                    <div><Emphasize>
                         {creditBalance !== undefined && accountPlan[creditAccount].name_kont}
-                    </Emphasize></Cell>
-                    <Cell><Emphasize>
+                    </Emphasize></div>
+                    <AlignRight><Emphasize>
                         {creditBalance !== undefined && <Saldo value={creditBalance} />}
-                    </Emphasize></Cell>
+                    </Emphasize></AlignRight>
                 </>}
-            </Grid>
+            </Flex>
             <br />
-
-            <CurrencyInput
-                name='sum'
-                size={7}
-                label='Summe'
-                ref={register({ required: INVALID_SUM_MSG, min: 0 })}
-                validationMsg={errors.sum}
-            />
-            <HorSpacer />
-            <Select
-                size={7}
-                name='tax'
-                label='Steuerschl.'
-                options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
-                ref={register({ validate: v => (validTaxOptions.indexOf(v) > -1) || INVALID_TAX_MSG })}
-                validationMsg={errors.tax}
-            />
+            <FlexEnd>
+                <div>
+                    <CurrencyInput
+                        name='sum'
+                        size={7}
+                        label='Summe'
+                        ref={register({ required: INVALID_SUM_MSG, min: 0 })}
+                        validationMsg={errors.sum}
+                    />
+                    <HorSpacer />
+                </div>
+                <div>
+                    <Select
+                        size={7}
+                        name='tax'
+                        label='Steuerschl.'
+                        options={taxes.map(t => { return { value: t.fasuch, name: t.fatext } })}
+                        ref={register({ validate: v => (validTaxOptions.indexOf(v) > -1) || INVALID_TAX_MSG })}
+                        validationMsg={errors.tax}
+                    />
+                </div>
             <br />
+            </FlexEnd>
             <TextInput
                 name='text'
                 label='Text&nbsp;'

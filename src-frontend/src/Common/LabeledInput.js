@@ -3,7 +3,10 @@ import styled from 'styled-components'
 
 import { Emphasize } from '../UIComponents'
 
-const Small = styled.span`font-size:smaller`
+const Style = styled.span`
+font-size:smaller;`
+const NoWrap = styled.span`
+white-space: nowrap;`
 
 export const Input = styled.input`
 color: ${props => props.theme.variable};
@@ -23,12 +26,12 @@ Input.defaultProps = {
 export const Label = styled.label`
 margin-right: 7px;`
 
-export const ValidationText = props => <Emphasize>
-    {'\u26A0 '}<Small>{props.text}</Small>
-</Emphasize>
+export const ValidationText = props => <NoWrap><Emphasize>
+    {'\u26A0 '}<Style>{props.text}</Style>
+</Emphasize></NoWrap>
 
 function LabeledInput(props, ref) {
-    return <><Label>{props.label}
+    return <><Label><NoWrap>{props.label}</NoWrap>
     </Label><Input {...props} ref={ref} /></>
 }
 export default forwardRef(LabeledInput)

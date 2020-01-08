@@ -1,6 +1,9 @@
 import React, { forwardRef } from 'react'
 import { ValidationText } from './LabeledInput'
 import EmphasizableInput from './EmphasizableInput'
+import styled from 'styled-components'
+
+const Wrapper = styled.span`margin-left: 5px;`
 
 function Select(props, ref) {
 
@@ -18,9 +21,9 @@ function Select(props, ref) {
                 {o.value} - {o.name}
             </option>)}
         </datalist>
-        {props.validationMsg && <ValidationText
+        {props.validationMsg && <Wrapper><ValidationText
             text={props.validationMsg.message}
-        />}
+        /></Wrapper>}
     </>
 }
 
