@@ -2,10 +2,6 @@ import React from 'react'
 import styled from 'styled-components'
 import packageJson from './package.alias'
 
-import { Grid as OGrid, Cell } from 'styled-css-grid'
-
-export const Grid = styled(OGrid)`grid-gap:0;`
-
 export const Pill = styled.span`
 background-color: ${props => props.theme.variableBg};
 color: ${props => props.theme.header};`
@@ -26,6 +22,11 @@ export const Emphasize = styled.span`
 @media not print {
     color: ${props => props.theme.emphasize}
 }`
+
+const Hidden = styled.span`visibility:hidden;`
+export const Space = ({size}) => <Hidden>
+    {Array.from(new Array(size), () => 'x').map(() => 'x')}
+    </Hidden>
 
 export const Minorize = styled.span`
 color: ${props => props.theme.minor}`
@@ -62,13 +63,24 @@ border:0.5px solid;`
 export const Padding = styled.div`
 padding: 5px 20px 5px 20px;`
 
+export const NoWrap = styled.span`white-space:nowrap;`
+
+export const Flex = styled.div`
+display:flex;
+justify-content: space-between;`
+
+export const AutoFlex = styled.div`flex: 1 1 auto;`
+
+export const FlexCenter = styled.div`align-self:center; text-align:center;`
+
 export function StatusHeader(props) {
     return <>
-        <Grid columns={6}>
-            <Cell middle center>FIBU {packageJson.version}</Cell>
-            <Cell {...props} width={props.join ? 5 : 3}>{props.children}</Cell>
-            {!props.join && <Cell width={2} middle>{props.right}</Cell>}
-        </Grid>
+        <Flex>
+            <FlexCenter >FIBU {packageJson.version}</FlexCenter>
+            {props.right && <AutoFlex />}
+            <div {...props}>{props.children}</div>
+            {!props.right && <div />}
+        </Flex>
         <Hr />
     </>
 }

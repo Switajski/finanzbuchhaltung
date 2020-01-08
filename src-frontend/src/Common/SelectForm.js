@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import { Redirect } from 'react-router-dom'
-import { Cell } from 'styled-css-grid'
 import useKey from 'use-key-hook'
 
-import { Padding, Grid } from '../UIComponents'
+import { Padding, Flex } from '../UIComponents'
 
 import LabeledInput from '../Common/LabeledInput'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
@@ -16,15 +15,15 @@ function SelectForm(props) {
         props.onSubmit()
     }} >
         <Padding>
-            <Grid columns={3}>
-                <Cell><LabeledInput
+            <Flex >
+                <div><LabeledInput
                     {...props}
                     type='number'
                     style={{ width: '50px' }}
                     min='1'
                     onChange={e => props.onChange(e.target.value)}
-                /></Cell>
-            </Grid>
+                /></div>
+            </Flex>
         </Padding>
         <KeyboardControls>
             <KeyButton

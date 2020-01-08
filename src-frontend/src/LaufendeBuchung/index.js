@@ -6,7 +6,7 @@ import useKey from 'use-key-hook'
 import useAccountingRecords, { indexSelector } from './useAccountingRecords'
 import SelectForm from '../Common/SelectForm'
 
-import { Hr, StatusHeader, Scrollable, Emphasize, Loading } from '../UIComponents'
+import { Hr, StatusHeader, Scrollable, Emphasize, Loading, Space } from '../UIComponents'
 import Table from '../Table'
 
 import AccountingRecordForm from './AccountingRecordForm';
@@ -76,16 +76,17 @@ function LaufendeBuchung() {
 
     return (
         <>
-            <StatusHeader right='laufende Buchung'>
+            <StatusHeader>
                 <Emphasize>
-                    {selectMode ? '' :
-                        (accountingRecords.has(positionNr) ? 'korrigiere ' : 'neue ')}
+                    {selectMode ? <Space size={11} /> :
+                        (accountingRecords.has(positionNr) ? 'korrigiere ' : <>neue <Space size={6}/></>)}
                 </Emphasize>
+                &nbsp;laufende Buchung
             </StatusHeader>
             {selectMode && <SelectForm
                 autoFocus
-                newRecordButtonText='neue Buchung'
-                label='Position Nr.'
+                newRecordButtonText={accountingRecords.has(positionNr) ? 'korrigiere' : 'neue Buchung'}
+                label='Pos.'
                 value={positionNr}
                 onSubmit={() => selectPosition(positionNr)}
                 onChange={setPositionNr}

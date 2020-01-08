@@ -65,7 +65,7 @@ function AccountingRecordForm(props) {
             <Flex>
                 <div><LabeledInput
                     name='pos'
-                    label='Pos. Nr.'
+                    label='Pos.'
                     size={6}
                     readOnly={true}
                     value={props.pos}

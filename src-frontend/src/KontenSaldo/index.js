@@ -54,8 +54,12 @@ function KontenSaldo() {
         setRedirect('/reload/konten-saldo/' + account)
       }}
     >
-      <StatusHeader
-        right={
+      <StatusHeader>
+        <Centered>
+          Kontosaldo von{' '}
+          {accountPlan && accountPlan[accountNo] && (
+            <Emphasize>&nbsp;{accountPlan[accountNo].name_kont}</Emphasize>
+          )}
           <Select
             options={accountPlanOptions}
             autoFocus
@@ -63,13 +67,6 @@ function KontenSaldo() {
             value={account}
             onChange={e => setAccount(e.target.value)}
           />
-        }
-      >
-        <Centered>
-          Kontosaldo von{' '}
-          {accountPlan && accountPlan[accountNo] && (
-            <Emphasize>&nbsp;{accountPlan[accountNo].name_kont}</Emphasize>
-          )}
         </Centered>
       </StatusHeader>
       <KeyboardControls>

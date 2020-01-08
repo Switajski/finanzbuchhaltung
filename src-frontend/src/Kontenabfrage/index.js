@@ -3,7 +3,7 @@ import useKey from 'use-key-hook'
 import { useAlert } from 'react-alert'
 import { Redirect } from 'react-router-dom'
 
-import { StatusHeader, Hr, Scrollable, UpperCase, Loading, Failed } from '../UIComponents'
+import { StatusHeader, Hr, Scrollable, UpperCase, Loading, Failed, NoWrap } from '../UIComponents'
 import DateInput from '../Common/DateInput'
 import KeyboardControls, { KeyButton } from '../KeyboardControls'
 import Table from '../Table'
@@ -45,9 +45,10 @@ function Kontenabfrage() {
                 <DateInput value={from}
                     onChange={e => setFrom(e.target.value)}
                     autoFocus name='from' label=' von' />
-                &nbsp;<DateInput value={to}
+                &nbsp;<NoWrap><DateInput value={to}
                     onChange={e => setTo(e.target.value)}
                     name='to' label='bis' />
+                    </NoWrap>
             </StatusHeader>
 
             <KeyboardControls>
