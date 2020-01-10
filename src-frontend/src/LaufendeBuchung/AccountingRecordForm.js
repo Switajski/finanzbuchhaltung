@@ -32,7 +32,7 @@ const AlignRight = styled.div`text-align:right;`
 const NoWrap = styled.span`white-space: nowrap;`
 const Saldo = ({ value }) => <>Saldo <NoWrap>{(value < 0 ? -value : value).toLocaleString()} {value < 0 ? 'S' : 'H'} </NoWrap></>
 
-function AccountingRecordForm(props) {
+function AccountingRecordForm({defaultValues, onSubmit, pos, cancel}) {
 
     const { result: accountPlan, loading, error } = useUrlForRead('/account-plan')
     const accountPlanOptions = Object.keys((accountPlan || {}))
@@ -45,10 +45,10 @@ function AccountingRecordForm(props) {
     const { result: taxesRaw /* find way to combine errors */ } = useUrlForRead('/taxes')
     const taxes = (taxesRaw || [])
     const { handleSubmit, register, errors, reset } = useForm({
-        defaultValues: props.defaultValues
+        defaultValues: defaultValues
     });
 
-    useEffect(() => reset(props.defaultValues), [props.defaultValues, reset])
+    useEffect(() => reset(defaultValues), [defaultValues, reset])
 
     const [creditAccount, setCreditAccount] = useState()
     const [debitAccount, setDebitAccount] = useState()
@@ -60,7 +60,7 @@ function AccountingRecordForm(props) {
     // TODO: reproduce in Codesandbox and report lib-owner
     if (error) return <p>Konnte Buchungsplan nicht vom Server laden.</p>
     return loading ? <Loading /> : <form
-        onSubmit={handleSubmit(props.onSubmit)} >
+        onSubmit={handleSubmit(onSubmit)} >
         <Padding>
             <Flex>
                 <div><LabeledInput
@@ -68,7 +68,7 @@ function AccountingRecordForm(props) {
                     label='Pos.'
                     size={6}
                     readOnly={true}
-                    value={props.pos}
+                    value={pos}
                     ref={register}
                 /></div>
 
@@ -169,7 +169,7 @@ function AccountingRecordForm(props) {
                 validationMsg={errors.text}
             />
         </Padding>
-        <EditFormKeyboardControls cancel={props.cancel} />
+        <EditFormKeyboardControls cancel={cancel} />
     </form>
 
 

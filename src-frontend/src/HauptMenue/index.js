@@ -61,12 +61,14 @@ function HauptMenue() {
     <Redirect to={redirect} />
   ) : (
     <>
-      <StatusHeader middle>Hauptmenue</StatusHeader>
+      <StatusHeader>Hauptmenue</StatusHeader>
       <Flex>
         <div>
           <MenuBlock name="Stammdaten">
             <MenuEntry>Steuerschluessel</MenuEntry>
-            <MenuEntry to={siteIndex[2]}>
+            <MenuEntry 
+            // to={siteIndex[2]}
+            >
               Konten
             </MenuEntry>
             <MenuEntry>Reorganisation</MenuEntry>

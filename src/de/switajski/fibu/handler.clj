@@ -20,6 +20,8 @@
 
 (def BUFFER-SIZE 8192)
 (def buchen-file "buchen.dbf")
+(def account-file "konten2.dbf")
+
 (defn number-format [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 
 (defn to-json [r]
@@ -94,10 +96,24 @@
                          :aufwendungen (sum-by-month accounting-records "A" "betrag_s" number-format)})})
            (GET "/account-plan" []
              {:status 200
-              :body   (reduce #(assoc %1 (:konto_nr %2) %2) {} (records-of "konten2.dbf"))})
-           (GET "/account-plan-atts" []
+              :body   (reduce #(assoc %1 (:konto_nr %2) %2) {} (records-of account-file))})
+           (GET "/account-plan-meta" []
              {:status 200
-              :body   (map :name (dbf/read-records-meta "konten2.dbf"))})
+              :body   (map
+                        #(assoc % :type (str "\\" (:type %))) ;escape escape character
+                        (dbf/read-records-meta account-file))})
+           (GET "/account" request
+             (let [account-no (get-in request [:params :accountNo])]
+               {:status 200
+                :body   (first (filter #(= account-no (:konto_nr %)) (records-of account-file)))}))
+           ;(POST "/account" req
+           ;  (let [account (:body req)]
+           ;    (edit-account-with-dans
+           ;      account-file
+           ;      account
+           ;      (search-index (:konto_mr account)))
+           ;    {:status 200
+           ;     :body   account}))
            (GET "/taxes" []
              {:status 200
               :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file

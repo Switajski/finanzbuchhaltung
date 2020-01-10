@@ -21,7 +21,8 @@ const toDomString = d => `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`
 function LaufendeBuchung() {
     const [positionNr, setPositionNrRaw] = useState('')
     const setPositionNr = p => setPositionNrRaw(parseInt(p))
-    const [dirty, setDirty] = useState(false)
+    const dirty = false;
+    const setDirty = () => console.log()
 
     const { accountingRecords, arMessages, saveAccountingRecord, loading } = useAccountingRecords([indexSelector, dirty])
 

@@ -1,38 +1,40 @@
 import React, { useState } from 'react'
 
 import SelectForm from '../Common/SelectForm'
-import KontenRecordForm from './KontenRecordForm'
 import { StatusHeader, Hr, Loading, Scrollable, Failed } from '../UIComponents'
 import Table from '../Table'
-import useUrlForRead from '../useUrlForRead'
-import useEditableRecord from '../Common/useEditableRecord'
+import {useAccountPlanAttributes, useAccountPlan} from '../useUrlForRead'
+import { Redirect } from 'react-router-dom'
 
 const indexSelector = r => r.konto_nr
 
 function Konten() {
-    const { result: atts, loading: loadingAtts, error: attsErrorerd } = useUrlForRead('/account-plan-atts')
-    const { result: accountMap, loading, error } = useUrlForRead('/account-plan')
+    const { result: attributes, loading: loadingAtts, error: attsErrorerd } = useAccountPlanAttributes()
+    const atts = (attributes || []).map(a => a.name)
+    const { result: accountMap, loading, error } = useAccountPlan()
     const accountList = Object.keys(accountMap || {}).map(no => accountMap[no])
 
     const [accountNo, setAccountNo] = useState('')
+    const [redirect, setRedirect] = useState()
 
-    const { editMode, selectMode, recordTemplate, setRecordTemplate } = useEditableRecord()
-    const selectAccountNo = r => setRecordTemplate(accountMap[r])
+    const selectAccountNo = no => setRedirect('account-form/' + no)
 
-    return <><StatusHeader middle>Konten</StatusHeader>
-        {selectMode && <SelectForm
+    if (redirect)
+    return <Redirect to={redirect}/>
+    else return <><StatusHeader>Konten
+    </StatusHeader>
+        <SelectForm
             value={accountNo}
             onChange={setAccountNo}
             autoFocus
             newRecordButtonText='neues Konto'
             label='Kontennr.:'
             onSubmit={() => selectAccountNo(accountNo)}
-        />}
-        {editMode && <KontenRecordForm defaultValues={recordTemplate} />}
+        />
         <Hr />
         {(loading || loadingAtts) ? <Loading /> : (error || attsErrorerd) ? <Failed /> : <Scrollable>
             <Table
-                attributes={atts.map(att => att.toLowerCase()).map(att => {
+                attributes={(atts || []).map(att => att.toLowerCase()).map(att => {
                     return { name: att, selector: v => v[att] }
                 })}
                 keySelector={p => p.konto_nr}

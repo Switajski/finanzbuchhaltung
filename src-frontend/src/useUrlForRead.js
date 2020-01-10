@@ -27,4 +27,7 @@ function useUrlForRead(url) {
     return { result, error, loading }
 }
 
+export const useAccountPlanAttributes = () => useUrlForRead('/account-plan-meta')
+export const useAccountPlan = () => useUrlForRead('/account-plan')
+
 export default useUrlForRead
