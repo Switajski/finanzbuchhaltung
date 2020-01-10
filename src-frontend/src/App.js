@@ -17,6 +17,7 @@ import Konten from './Konten'
 import Guv from './Guv'
 
 import { Screen, Content } from './UIComponents'
+import KontenRecordForm from './KontenForm';
 
 function App() {
 
@@ -33,6 +34,7 @@ function App() {
               <Route path='/konten-saldo'><KontenSaldo /></Route>
               <Route path='/guv'><Guv /></Route>
               <Route path='/accounts'><Konten /></Route>
+              <Route path='/account-form/:accountNo'><KontenRecordForm /></Route>
               <Route path="/"><HauptMenue /></Route>
             </Switch>
           </Content>

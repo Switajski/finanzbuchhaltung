@@ -97,7 +97,13 @@
               :body   (reduce #(assoc %1 (:konto_nr %2) %2) {} (records-of "konten2.dbf"))})
            (GET "/account-plan-atts" []
              {:status 200
-              :body   (map :name (dbf/read-records-meta "konten2.dbf"))})
+              :body   (map
+                        #(assoc % :type (str "\\" (:type %))) ;escape escape character
+                        (dbf/read-records-meta "konten2.dbf"))})
+           (GET "/account" request
+             (let [account-no (get-in request [:params :accountNo])]
+               {:status 200
+                :body   (first (filter #(= account-no (:konto_nr %)) (records-of "konten2.dbf")))}))
            (GET "/taxes" []
              {:status 200
               :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file
