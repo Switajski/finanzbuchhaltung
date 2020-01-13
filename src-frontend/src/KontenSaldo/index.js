@@ -48,13 +48,14 @@ function KontenSaldo() {
   }
 
   return (
+    <>
     <form
       onSubmit={e => {
         e.preventDefault()
         setRedirect('/reload/konten-saldo/' + account)
       }}
     >
-      <StatusHeader>
+    <StatusHeader>
         <Centered>
           Kontosaldo von{' '}
           {accountPlan && accountPlan[accountNo] && (
@@ -82,6 +83,7 @@ function KontenSaldo() {
         />
         <KeyButton active text="&#8617; : Kontensaldo" type="submit" />
       </KeyboardControls>
+      </form>
       <Hr />
       {loading ? (
         <Loading />
@@ -118,7 +120,7 @@ function KontenSaldo() {
           />
         </Scrollable>
       )}
-    </form>
+      </>
   )
 }
 

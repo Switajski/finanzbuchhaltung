@@ -20,7 +20,7 @@
 
 (def BUFFER-SIZE 8192)
 (def buchen-file "buchen.dbf")
-(def account-file "konten.dbf")
+(def account-file "konten2.dbf")
 
 (defn number-format [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 
@@ -170,4 +170,4 @@
 
 (defn -main
   [& args]
-  (run-jetty app {:port 3333}))
+  (run-jetty app {:port 4000}))
