@@ -27,7 +27,11 @@ function useUrlForRead(url) {
     return { result, error, loading }
 }
 
+<<<<<<< HEAD
 export const useAccountPlanAttributes = () => useUrlForRead('/account-plan-meta')
+=======
+export const useAccountPlanAttributes = () => useUrlForRead('/account-plan-atts')
+>>>>>>> 46313a763259c658a4e779c4974ad162142317e2
 export const useAccountPlan = () => useUrlForRead('/account-plan')
 
 export default useUrlForRead

@@ -101,6 +101,7 @@
              {:status 200
               :body   (map
                         #(assoc % :type (str "\\" (:type %))) ;escape escape character
+<<<<<<< HEAD
                         (dbf/read-records-meta account-file))})
            (GET "/account" request
              (let [account-no (get-in request [:params :accountNo])]
@@ -114,6 +115,13 @@
            ;      (search-index (:konto_mr account)))
            ;    {:status 200
            ;     :body   account}))
+=======
+                        (dbf/read-records-meta "konten2.dbf"))})
+           (GET "/account" request
+             (let [account-no (get-in request [:params :accountNo])]
+               {:status 200
+                :body   (first (filter #(= account-no (:konto_nr %)) (records-of "konten2.dbf")))}))
+>>>>>>> 46313a763259c658a4e779c4974ad162142317e2
            (GET "/taxes" []
              {:status 200
               :body   (edn/read "taxes.edn")})              ;TODO: fa08.dbf instead of config file
