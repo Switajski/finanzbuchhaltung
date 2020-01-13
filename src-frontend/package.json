@@ -1,6 +1,6 @@
 {
   "name": "finanzbuchhaltung",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "private": false,
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
