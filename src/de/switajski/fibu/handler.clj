@@ -20,7 +20,7 @@
 
 (def BUFFER-SIZE 8192)
 (def buchen-file "buchen.dbf")
-(def account-file "konten2.dbf")
+(def account-file "konten.dbf")
 
 (defn number-format [n] (.doubleValue (.setScale (java.math.BigDecimal. n) 2 RoundingMode/HALF_UP)))
 

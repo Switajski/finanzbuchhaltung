@@ -1,6 +1,6 @@
 {
   "name": "finanzbuchhaltung",
-  "version": "2.1.10",
+  "version": "2.1.11-SNAP",
   "private": false,
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
