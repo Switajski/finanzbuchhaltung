@@ -10,7 +10,7 @@ pom.xml.asc
 *.zip
 *.class
 *.log
-*.dbf
-*.edn
 /.lein-*
 /.nrepl-port
+*.iml
+.DS_Store
