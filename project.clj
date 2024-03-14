@@ -10,7 +10,7 @@
                  [ring/ring-json "0.3.1"]
                  [ring/ring-defaults "0.3.2"]
                  [compojure "1.6.1"]
-                 [nl.knaw.dans.common/dans-dbf-lib "1.0.0-beta-10"]
+                 [com.switajski/dans-dbf-lib "1.0.0-beta-13"]
                  [org.clojure/data.json "0.2.6"]]
   :scm {:name "git" :url "https://github.com/switajski/finanzbuchhaltung"}
   :plugins [[lein-ring "0.12.5"]
